@@ -3,7 +3,7 @@
 	"package": "chaos.mixin",
 	"compatibilityLevel": "JAVA_21",
 	"mixins": [
-		"ExampleMixin"
+      "ExplosionMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

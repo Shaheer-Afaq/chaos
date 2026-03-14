@@ -1,0 +1,16 @@
+package chaos.game;
+
+
+import net.minecraft.util.math.BlockPos;
+
+public class GameConfig {
+
+    public static final int MIN_PLAYERS = 2;
+    public static final int MAX_PLAYERS = 20;
+
+    public static final BlockPos LOBBY_POS = new BlockPos(0,107,0);
+    public static final BlockPos ARENA_POS = new BlockPos(0,76,0);
+
+    public static final BlockPos START_BUTTON = new BlockPos(4,108,0);
+
+}
