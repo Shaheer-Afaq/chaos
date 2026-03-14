@@ -15,21 +15,26 @@ public class GameManager {
         ENDING
     }
 
-    private static GameState state = GameState.WAITING;
-    private static Set<ServerPlayerEntity> activePlayers = new HashSet<>();
-    private static Set<ServerPlayerEntity> players = new HashSet<>();
+    public static GameState state = GameState.WAITING;
+    public static Set<ServerPlayerEntity> activePlayers = new HashSet<>();
+    public static Set<ServerPlayerEntity> players = new HashSet<>();
 
     public static void init() {
 
     }
 
-    public static void addPlayer(ServerPlayerEntity player) {
-        players.add(player);
-    }
+//    public static void addActivePlayer(ServerPlayerEntity player) {
+//        players.add(player);
+//    }
+//    public static void removeActivePlayer(ServerPlayerEntity player) {
+//        players.remove(player);
+//    }
 
     public static void startGame() {
-        activePlayers = new HashSet<>(players);
-        for (ServerPlayerEntity player : activePlayers) {
+        state = GameState.RUNNING;
+        activePlayers.clear();
+        for (ServerPlayerEntity player : players) {
+            activePlayers.add(player);
             toArena(player);
         }
     }
@@ -37,12 +42,15 @@ public class GameManager {
     public static void endGame() {
         for (ServerPlayerEntity player : activePlayers) {
             toLobby(player);
-            player.getInventory().clear();
         }
     }
 
     public static void toLobby(ServerPlayerEntity player) {
+        if (activePlayers.isEmpty()) {
+            state = GameState.WAITING;
+        }
         player.changeGameMode(GameMode.ADVENTURE);
+        player.getInventory().clear();
         player.teleport(
                 GameConfig.LOBBY_POS.getX() + 0.5,
                 GameConfig.LOBBY_POS.getY(),
@@ -53,6 +61,7 @@ public class GameManager {
 
     public static void toArena(ServerPlayerEntity player) {
         player.changeGameMode(GameMode.SURVIVAL);
+        player.getInventory().clear();
         player.teleport(
                 GameConfig.ARENA_POS.getX() + 0.5,
                 GameConfig.ARENA_POS.getY(),
