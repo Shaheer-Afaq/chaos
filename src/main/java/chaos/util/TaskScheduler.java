@@ -25,19 +25,18 @@ public class TaskScheduler {
     }
 
     private static void tick() {
-        Iterator<ScheduledTask> iterator = tasks.iterator();
-        while (iterator.hasNext()) {
-            ScheduledTask task = iterator.next();
+//        Iterator<ScheduledTask> iterator = tasks.iterator();
+        for (ScheduledTask task: tasks){
             task.ticksLeft--;
             if (task.cancelled) {
-                iterator.remove();
+                tasks.remove(task);
             }else if (task.ticksLeft <= 0) {
                 task.runnable.accept(task.currentRun);
                 task.ticksLeft = task.delayTicks;
                 if (task.currentRun < task.runs ) {
                     task.currentRun++;
                 }else if (task.currentRun == task.runs) {
-                    iterator.remove();
+                    tasks.remove(task);
                     if (task.onEnd != null){
                         task.onEnd.run();
                     }

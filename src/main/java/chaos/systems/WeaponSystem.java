@@ -34,9 +34,7 @@ public class WeaponSystem {
 
             inv.setStack(inv.getEmptySlot(), randomWeapon);
 
-            player.sendMessage(Text.literal("---------------").formatted(Formatting.GOLD));
-            player.sendMessage(Text.literal("You got".concat(Objects.requireNonNull(randomWeapon.getCustomName()).getString().concat(" !"))).formatted(Formatting.GOLD));
-            player.sendMessage(Text.literal("---------------").formatted(Formatting.GOLD));
+            player.sendMessage(Text.literal("You got ".concat(Objects.requireNonNull(randomWeapon.getCustomName()).getString().concat(" !"))).formatted(Formatting.GOLD));
             getData(player).messages.set(0, "Weapon: ".concat(randomWeapon.getCustomName().getString()));
         }
     }

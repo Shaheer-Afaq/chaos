@@ -73,6 +73,7 @@ public class GameManager {
 
         for (ServerPlayerEntity player : players) {
             toArena(player);
+            sendTitle(player, "GO!", Formatting.RED);
         }
     }
 

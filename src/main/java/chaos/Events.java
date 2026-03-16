@@ -86,8 +86,8 @@ public class Events {
                     sendMessage((ServerPlayerEntity) player, Text.literal("Not enough players!").formatted(Formatting.RED));
                 } else {
                     TaskScheduler.schedule((int x) -> {
-                        for (ServerPlayerEntity p: activePlayers){
-                            sendTitle(p, "String.valueOf(x)", Formatting.YELLOW);
+                        for (ServerPlayerEntity p: players){
+                            sendTitle(p, String.valueOf(5-x), Formatting.YELLOW);
                         }
                     }, 20, 5, true, GameManager::startGame);
                 }
