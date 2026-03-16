@@ -1,55 +1,98 @@
 package chaos.game;
 
 
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
+import chaos.systems.WeaponSystem;
+import chaos.util.TaskScheduler;
+import chaos.util.TaskScheduler.ScheduledTask;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
+import net.minecraft.entity.ai.brain.task.Task;
+import net.minecraft.entity.effect.StatusEffectInstance;
+import net.minecraft.entity.effect.StatusEffects;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.world.ServerWorld;
+import net.minecraft.text.Text;
+import net.minecraft.util.Formatting;
 import net.minecraft.world.GameMode;
 
 import java.util.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+
+import static chaos.util.HelperMethods.*;
 
 public class GameManager {
+
     public enum GameState {
         WAITING,
         RUNNING,
         ENDING
     }
 
+    public static MinecraftServer server;
     public static GameState state = GameState.WAITING;
-    public static Set<ServerPlayerEntity> activePlayers = new HashSet<>();
+
     public static Set<ServerPlayerEntity> players = new HashSet<>();
+    public static Set<ServerPlayerEntity> activePlayers = new HashSet<>();
 
-    public static void init() {
-
+    public static final Map<UUID, PlayerData> playerData = new HashMap<>();
+    public static PlayerData getData(ServerPlayerEntity player) {
+        return playerData.get(player.getUuid());
     }
 
-//    public static void addActivePlayer(ServerPlayerEntity player) {
-//        players.add(player);
-//    }
-//    public static void removeActivePlayer(ServerPlayerEntity player) {
-//        players.remove(player);
-//    }
+    private static ScheduledTask weaponTask;
+
+    public static void init() {
+        ServerTickEvents.START_SERVER_TICK.register(GameManager::tick);
+    }
+
+    public static void tick(MinecraftServer server) {
+        if (state == GameState.RUNNING) {
+            WeaponSystem.tick();
+
+            if (activePlayers.size() == 0){
+                endGame();
+            }
+            for (ServerPlayerEntity player : activePlayers) {
+                PlayerData playerData = getData(player);
+                List<String> messages = playerData.messages;
+
+                playerData.message = Text.literal(messages.getFirst()).formatted(Formatting.YELLOW).formatted(Formatting.BOLD)
+                                    .append(Text.literal(messages.get(1)).formatted(Formatting.GREEN).formatted(Formatting.BOLD))
+                                    .append(Text.literal(messages.get(2)).formatted(Formatting.BLUE).formatted(Formatting.BOLD));
+
+                player.sendMessage(playerData.message, true);
+            }
+        }
+    }
 
     public static void startGame() {
         state = GameState.RUNNING;
-        activePlayers.clear();
+        WeaponSystem.start();
+
         for (ServerPlayerEntity player : players) {
-            activePlayers.add(player);
             toArena(player);
         }
     }
 
     public static void endGame() {
-        for (ServerPlayerEntity player : activePlayers) {
-            toLobby(player);
-        }
+        state = GameState.ENDING;
+        WeaponSystem.stop();
+        ServerPlayerEntity winner = activePlayers.iterator().next();
+
+        sendTitle(winner, "You Won!", Formatting.GREEN);
+
+        TaskScheduler.schedule((x)->{
+            toLobby(winner);
+            state = GameState.WAITING;
+        }, 2 * 20, 1, false, null);
     }
 
     public static void toLobby(ServerPlayerEntity player) {
-        if (activePlayers.isEmpty()) {
-            state = GameState.WAITING;
-        }
-        player.changeGameMode(GameMode.ADVENTURE);
+        playerData.remove(player.getUuid());
+        activePlayers.remove(player);
+        player.heal(20);
         player.getInventory().clear();
         player.teleport(
                 GameConfig.LOBBY_POS.getX() + 0.5,
@@ -57,11 +100,15 @@ public class GameManager {
                 GameConfig.LOBBY_POS.getZ() + 0.5,
                 false
         );
+        player.changeGameMode(GameMode.SURVIVAL);
     }
 
     public static void toArena(ServerPlayerEntity player) {
-        player.changeGameMode(GameMode.SURVIVAL);
+        activePlayers.add(player);
+        playerData.put(player.getUuid(), new PlayerData());
+        player.heal(20);
         player.getInventory().clear();
+        player.addStatusEffect(new StatusEffectInstance(StatusEffects.SATURATION, 15*60, 10, true, false));
         player.teleport(
                 GameConfig.ARENA_POS.getX() + 0.5,
                 GameConfig.ARENA_POS.getY(),
@@ -69,4 +116,5 @@ public class GameManager {
                 false
         );
     }
+
 }

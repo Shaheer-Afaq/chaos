@@ -1,6 +1,7 @@
 package chaos;
 
 import chaos.game.GameManager;
+import chaos.util.TaskScheduler;
 import net.fabricmc.api.ModInitializer;
 
 import org.slf4j.Logger;
@@ -14,6 +15,7 @@ public class Chaos implements ModInitializer {
 	public void onInitialize() {
 		Events.register();
 		GameManager.init();
+		TaskScheduler.init();
 		LOGGER.info("Hello Fabric world!");
 	}
 }
