@@ -10,16 +10,8 @@ import java.util.List;
 
 public class PlayerData {
 
-    private enum State{
-        PLAYING,
-        SPECTATING,
-        WAITING
-    }
-    State state =  State.WAITING;
-
     public Text message = Text.empty();
     public List<String> messages = new ArrayList<>(Arrays.asList("", "", ""));
     public Text weapon;
-
 
 }

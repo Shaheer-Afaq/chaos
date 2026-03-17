@@ -34,16 +34,7 @@ import static chaos.game.GameManager.*;
 public class Events {
     public static void register() {
         ServerLifecycleEvents.SERVER_STARTED.register(server -> {
-            ServerWorld world = server.getWorld(World.OVERWORLD);
-            server.setDifficulty(Difficulty.HARD, true);
 
-            assert world != null;
-            world.getGameRules().setValue(GameRules.ADVANCE_TIME, false, server);
-            world.getGameRules().setValue(GameRules.DO_IMMEDIATE_RESPAWN, true, server);
-            world.getGameRules().setValue(GameRules.DO_MOB_SPAWNING, false, server);
-            world.getGameRules().setValue(GameRules.DO_MOB_GRIEFING, false, server);
-            world.getGameRules().setValue(GameRules.KEEP_INVENTORY, true, server);
-            world.getGameRules().setValue(GameRules.NATURAL_HEALTH_REGENERATION, false, server);
         });
 
         ServerPlayerEvents.JOIN.register((player) -> {
@@ -61,14 +52,23 @@ public class Events {
             playerData.remove(player.getUuid());
         });
 
-        ServerPlayerEvents.AFTER_RESPAWN.register((oldplayer, newplayer, alive) -> {
-            activePlayers.remove(oldplayer);
-            toLobby(newplayer);
+        ServerLivingEntityEvents.ALLOW_DEATH.register((player, source, amount)->{
+            toLobby((ServerPlayerEntity) player);
+            return false;
         });
+//        ServerPlayerEvents.AFTER_RESPAWN.register((oldplayer, newplayer, alive) -> {
+//            toLobby(newplayer);
+//            activePlayers.remove(oldplayer);
+//        });
 
         ServerLivingEntityEvents.ALLOW_DAMAGE.register((entity, source, amount)->{
             if (entity instanceof ServerPlayerEntity player && !source.isOf(DamageTypes.GENERIC_KILL)){
-                return activePlayers.contains(player);
+                if (source.isOf(DamageTypes.OUT_OF_WORLD)) {
+                    player.kill(getWorld());
+                }
+                else{
+                    return activePlayers.contains(player);
+                }
             }
             return true;
         });
@@ -85,11 +85,12 @@ public class Events {
                 } else if (false) {
                     sendMessage((ServerPlayerEntity) player, Text.literal("Not enough players!").formatted(Formatting.RED));
                 } else {
+                    state = GameState.STARTING;
                     TaskScheduler.schedule((int x) -> {
                         for (ServerPlayerEntity p: players){
                             sendTitle(p, String.valueOf(3-x), Formatting.YELLOW);
                         }
-                    }, 20, 3, true, () -> {startGame(world.getServer());});
+                    }, 20, 3, true, GameManager::startGame);
                 }
             }
             return ActionResult.PASS;

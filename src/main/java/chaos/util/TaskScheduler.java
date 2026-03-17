@@ -25,19 +25,34 @@ public class TaskScheduler {
     }
 
     private static void tick() {
-//        Iterator<ScheduledTask> iterator = tasks.iterator();
-        for (ScheduledTask task: tasks){
-            task.ticksLeft--;
+        // 1. Create a shallow copy of the list to iterate over safely
+        List<ScheduledTask> tasksCopy = new ArrayList<>(tasks);
+
+        for (ScheduledTask task : tasksCopy) {
+            // 2. If a task was cancelled by another task in this same tick, skip it
             if (task.cancelled) {
                 tasks.remove(task);
-            }else if (task.ticksLeft <= 0) {
+                continue;
+            }
+
+            task.ticksLeft--;
+
+            if (task.ticksLeft <= 0) {
+                // Run the task
                 task.runnable.accept(task.currentRun);
+
+                // Reset delay
                 task.ticksLeft = task.delayTicks;
-                if (task.currentRun < task.runs ) {
+
+                // Handle run logic
+                if (task.runs < 0) {
                     task.currentRun++;
-                }else if (task.currentRun == task.runs) {
+                } else if (task.currentRun < task.runs) {
+                    task.currentRun++;
+                } else {
+                    // Task is finished - remove from the ORIGINAL list
                     tasks.remove(task);
-                    if (task.onEnd != null){
+                    if (task.onEnd != null) {
                         task.onEnd.run();
                     }
                 }

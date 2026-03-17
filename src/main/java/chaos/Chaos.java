@@ -13,9 +13,9 @@ public class Chaos implements ModInitializer {
 
 	@Override
 	public void onInitialize() {
+		TaskScheduler.init();
 		Events.register();
 		GameManager.init();
-		TaskScheduler.init();
 		LOGGER.info("Hello Fabric world!");
 	}
 }

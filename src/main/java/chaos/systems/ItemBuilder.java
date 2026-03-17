@@ -2,14 +2,20 @@ package chaos.systems;
 
 import net.minecraft.component.ComponentType;
 import net.minecraft.component.DataComponentTypes;
-import net.minecraft.component.type.AttackRangeComponent;
+import net.minecraft.component.type.NbtComponent;
 import net.minecraft.enchantment.Enchantment;
+import net.minecraft.entity.EntityType;
+import net.minecraft.entity.TypedEntityData;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NbtCompound;
 import net.minecraft.registry.Registry;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
+import net.minecraft.util.Unit;
+
+import java.util.function.Consumer;
 
 public class ItemBuilder {
     private final ItemStack stack;
@@ -34,6 +40,20 @@ public class ItemBuilder {
         stack.set(type, value);
         return this;
     }
+
+    public ItemBuilder entityData(EntityType<?> type, Consumer<NbtCompound> nbtModifier) {
+        NbtCompound nbt = new NbtCompound();
+        nbtModifier.accept(nbt);
+        TypedEntityData<EntityType<?>> typedData = TypedEntityData.create(type, NbtComponent.of(nbt).copyNbt());
+
+        return component(DataComponentTypes.ENTITY_DATA, typedData);
+    }
+
+    public ItemBuilder unbreakable() {
+        stack.set(DataComponentTypes.UNBREAKABLE, Unit.INSTANCE);
+        return this;
+    }
+
     public ItemStack build() {
         return this.stack;
     }
