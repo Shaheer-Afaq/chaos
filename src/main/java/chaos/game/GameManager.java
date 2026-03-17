@@ -1,25 +1,22 @@
 package chaos.game;
 
 
-import chaos.systems.WeaponSystem;
+import chaos.systems.PlayerSystem;
 import chaos.util.TaskScheduler;
 import chaos.util.TaskScheduler.ScheduledTask;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
-import net.minecraft.entity.ai.brain.task.Task;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.world.GameMode;
 
 import java.util.*;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
+import static chaos.systems.PlayerSystem.populateLists;
 import static chaos.util.HelperMethods.*;
 
 public class GameManager {
@@ -30,7 +27,7 @@ public class GameManager {
         ENDING
     }
 
-    public static MinecraftServer server;
+    public static MinecraftServer Server;
     public static GameState state = GameState.WAITING;
 
     public static Set<ServerPlayerEntity> players = new HashSet<>();
@@ -45,14 +42,18 @@ public class GameManager {
 
     public static void init() {
         ServerTickEvents.START_SERVER_TICK.register(GameManager::tick);
+        ServerLifecycleEvents.SERVER_STARTED.register(server -> {
+            Server = server;
+            populateLists();
+        });
     }
 
     public static void tick(MinecraftServer server) {
         if (state == GameState.RUNNING) {
-            WeaponSystem.tick();
+            PlayerSystem.tick();
 
             if (activePlayers.size() == 0){
-                endGame();
+                endGame(server);
             }
             for (ServerPlayerEntity player : activePlayers) {
                 PlayerData playerData = getData(player);
@@ -67,9 +68,9 @@ public class GameManager {
         }
     }
 
-    public static void startGame() {
+    public static void startGame(MinecraftServer server) {
         state = GameState.RUNNING;
-        WeaponSystem.start();
+        PlayerSystem.start(server);
 
         for (ServerPlayerEntity player : players) {
             toArena(player);
@@ -77,9 +78,9 @@ public class GameManager {
         }
     }
 
-    public static void endGame() {
+    public static void endGame(MinecraftServer server) {
         state = GameState.ENDING;
-        WeaponSystem.stop();
+        PlayerSystem.stop();
         ServerPlayerEntity winner = activePlayers.iterator().next();
 
         sendTitle(winner, "You Won!", Formatting.GREEN);

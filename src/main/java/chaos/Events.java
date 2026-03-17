@@ -87,9 +87,9 @@ public class Events {
                 } else {
                     TaskScheduler.schedule((int x) -> {
                         for (ServerPlayerEntity p: players){
-                            sendTitle(p, String.valueOf(5-x), Formatting.YELLOW);
+                            sendTitle(p, String.valueOf(3-x), Formatting.YELLOW);
                         }
-                    }, 20, 5, true, GameManager::startGame);
+                    }, 20, 3, true, () -> {startGame(world.getServer());});
                 }
             }
             return ActionResult.PASS;
@@ -102,5 +102,7 @@ public class Events {
         PlayerBlockBreakEvents.BEFORE.register((world, player, blockPos, state, entity)->{
             return Objects.equals(player.getGameMode(), GameMode.CREATIVE);
         });
+
+
     }
 }
