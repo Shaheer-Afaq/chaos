@@ -154,7 +154,7 @@ public class GameManager {
     }
 
     public static void toLobby(ServerPlayerEntity player) {
-//        activePlayers.remove(player);
+        activePlayers.remove(player);
         players.add(player);
         playerData.remove(player.getUuid());
         player.heal(20);

@@ -52,13 +52,10 @@ public class Events {
             playerData.remove(player.getUuid());
         });
 
-//        ServerLivingEntityEvents.ALLOW_DEATH.register((player, source, amount)->{
-//            toLobby((ServerPlayerEntity) player);
-//            return false;
-//        });
         ServerPlayerEvents.AFTER_RESPAWN.register((oldplayer, newplayer, alive) -> {
-            activePlayers.remove(oldplayer);
-            players.remove(oldplayer);
+            activePlayers.removeIf(p -> p.getUuid().equals(oldplayer.getUuid()));
+            players.removeIf(p -> p.getUuid().equals(oldplayer.getUuid()));
+
             toLobby(newplayer);
         });
 
