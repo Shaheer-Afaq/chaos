@@ -16,6 +16,7 @@ public class TaskScheduler {
     }
 
     public static ScheduledTask schedule(IntConsumer runnable, int delayTicks, int runs, boolean runFirst, Runnable onEnd) { //set runs to a negative value for infinite runs
+        if (runFirst){runs--;}
         ScheduledTask task = new ScheduledTask(runnable, delayTicks, runs,  runFirst, onEnd);
         tasks.add(task);
         if (runFirst){
@@ -25,11 +26,9 @@ public class TaskScheduler {
     }
 
     private static void tick() {
-        // 1. Create a shallow copy of the list to iterate over safely
         List<ScheduledTask> tasksCopy = new ArrayList<>(tasks);
 
         for (ScheduledTask task : tasksCopy) {
-            // 2. If a task was cancelled by another task in this same tick, skip it
             if (task.cancelled) {
                 tasks.remove(task);
                 continue;
@@ -38,19 +37,15 @@ public class TaskScheduler {
             task.ticksLeft--;
 
             if (task.ticksLeft <= 0) {
-                // Run the task
                 task.runnable.accept(task.currentRun);
 
-                // Reset delay
                 task.ticksLeft = task.delayTicks;
 
-                // Handle run logic
                 if (task.runs < 0) {
                     task.currentRun++;
                 } else if (task.currentRun < task.runs) {
                     task.currentRun++;
                 } else {
-                    // Task is finished - remove from the ORIGINAL list
                     tasks.remove(task);
                     if (task.onEnd != null) {
                         task.onEnd.run();
@@ -75,7 +70,6 @@ public class TaskScheduler {
         public ScheduledTask(IntConsumer runnable, int delayTicks, int runs, boolean runFirst, Runnable onEnd) {
             this.runnable = runnable;
             this.delayTicks = delayTicks;
-//            this.ticksLeft = runFirst ? 0 : delayTicks;
             this.ticksLeft = delayTicks;
             this.runs = runs;
             this.currentRun = 1;

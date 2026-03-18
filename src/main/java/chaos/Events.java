@@ -52,14 +52,15 @@ public class Events {
             playerData.remove(player.getUuid());
         });
 
-        ServerLivingEntityEvents.ALLOW_DEATH.register((player, source, amount)->{
-            toLobby((ServerPlayerEntity) player);
-            return false;
-        });
-//        ServerPlayerEvents.AFTER_RESPAWN.register((oldplayer, newplayer, alive) -> {
-//            toLobby(newplayer);
-//            activePlayers.remove(oldplayer);
+//        ServerLivingEntityEvents.ALLOW_DEATH.register((player, source, amount)->{
+//            toLobby((ServerPlayerEntity) player);
+//            return false;
 //        });
+        ServerPlayerEvents.AFTER_RESPAWN.register((oldplayer, newplayer, alive) -> {
+            activePlayers.remove(oldplayer);
+            players.remove(oldplayer);
+            toLobby(newplayer);
+        });
 
         ServerLivingEntityEvents.ALLOW_DAMAGE.register((entity, source, amount)->{
             if (entity instanceof ServerPlayerEntity player && !source.isOf(DamageTypes.GENERIC_KILL)){
