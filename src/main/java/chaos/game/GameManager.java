@@ -49,8 +49,8 @@ public class GameManager {
 
     public static GameState state;
 
-    public static Set<ServerPlayerEntity> players = new HashSet<>();
-    public static Set<ServerPlayerEntity> activePlayers = new HashSet<>();
+    public static Set<UUID> players = new HashSet<>();
+    public static Set<UUID> activePlayers = new HashSet<>();
 
     public static final Map<UUID, PlayerData> playerData = new HashMap<>();
     public static PlayerData getData(ServerPlayerEntity player) {
