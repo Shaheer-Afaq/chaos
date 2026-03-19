@@ -117,7 +117,6 @@ public class PlayerSystem {
                 .build());
 
 
-
         FireworkExplosionComponent explosion = new FireworkExplosionComponent(
                 FireworkExplosionComponent.Type.BURST,
                 IntList.of(0x545454),

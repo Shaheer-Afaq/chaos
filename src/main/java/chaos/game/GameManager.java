@@ -54,7 +54,7 @@ public class GameManager {
             state = GameState.WAITING;
             Server = server;
             World = server.getOverworld();
-            TaskScheduler.schedule((x)-> Server.openToLan(GameMode.SURVIVAL, true, 0), 1, 1, false, null);
+            TaskScheduler.schedule((x)-> Server.openToLan(GameMode.SURVIVAL, true, 25565), 20, 1, false, null);
             setRules();
             resetArena();
             populateLists();
