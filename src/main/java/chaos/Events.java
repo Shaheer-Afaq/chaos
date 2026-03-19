@@ -25,10 +25,10 @@ import net.minecraft.world.World;
 import net.minecraft.world.rule.GameRules;
 
 import java.util.Objects;
+import java.util.UUID;
 
-import static chaos.util.HelperMethods.sendMessage;
-import static chaos.util.HelperMethods.sendTitle;
 import static chaos.game.GameManager.*;
+import static chaos.util.HelperMethods.*;
 
 
 public class Events {
@@ -38,7 +38,7 @@ public class Events {
         });
 
         ServerPlayerEvents.JOIN.register((player) -> {
-            players.add(player);
+            players.add(player.getUuid());
             toLobby(player);
             sendTitle(player, "Welcome to Chaos!", Formatting.GOLD);
 //            Objects.requireNonNull(player.getEntityWorld().getServer()).execute(()->{
@@ -47,25 +47,22 @@ public class Events {
         });
 
         ServerPlayerEvents.LEAVE.register(player -> {
-            players.remove(player);
-            activePlayers.remove(player);
+            players.remove(player.getUuid());
+            activePlayers.remove(player.getUuid());
             playerData.remove(player.getUuid());
         });
 
         ServerPlayerEvents.AFTER_RESPAWN.register((oldplayer, newplayer, alive) -> {
-            activePlayers.removeIf(p -> p.getUuid().equals(oldplayer.getUuid()));
-            players.removeIf(p -> p.getUuid().equals(oldplayer.getUuid()));
-
             toLobby(newplayer);
+            sendTitle(newplayer, "You Died", Formatting.RED);
         });
 
         ServerLivingEntityEvents.ALLOW_DAMAGE.register((entity, source, amount)->{
             if (entity instanceof ServerPlayerEntity player && !source.isOf(DamageTypes.GENERIC_KILL)){
-                if (source.isOf(DamageTypes.OUT_OF_WORLD)) {
-                    player.kill(getWorld());
-                }
-                else{
-                    return activePlayers.contains(player);
+                if (state == GameState.RUNNING){
+                    return activePlayers.contains(player.getUuid());
+                }else{
+                    return false;
                 }
             }
             return true;
@@ -78,17 +75,19 @@ public class Events {
             BlockPos pos = hitResult.getBlockPos();
             if (pos.equals(GameConfig.START_BUTTON) && world.getBlockState(pos).getBlock() == Blocks.STONE_BUTTON && !world.getBlockState(pos).get(Properties.POWERED)){
                 if (state != GameState.WAITING) {
-                    sendMessage((ServerPlayerEntity) player, Text.literal("Game is already running").formatted(Formatting.RED));
+                    player.sendMessage(Text.literal("Game is already running").formatted(Formatting.RED), true);
 //                } else if (players.size() < MIN_PLAYERS) {
                 } else if (false) {
-                    sendMessage((ServerPlayerEntity) player, Text.literal("Not enough players!").formatted(Formatting.RED));
+                    player.sendMessage(Text.literal("Not enough players!").formatted(Formatting.RED), true);
                 } else {
                     state = GameState.STARTING;
                     TaskScheduler.schedule((int x) -> {
-                        for (ServerPlayerEntity p: players){
-                            sendTitle(p, String.valueOf(3-x), Formatting.YELLOW);
+                        for (UUID uuid: players){
+                            if (x != 3){
+                                sendTitle(getPlayer(uuid), String.valueOf(3-x), Formatting.YELLOW);
+                            }
                         }
-                    }, 20, 3, true, GameManager::startGame);
+                    }, 20, 4, true, GameManager::startGame);
                 }
             }
             return ActionResult.PASS;

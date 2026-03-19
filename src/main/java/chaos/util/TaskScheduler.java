@@ -41,9 +41,7 @@ public class TaskScheduler {
 
                 task.ticksLeft = task.delayTicks;
 
-                if (task.runs < 0) {
-                    task.currentRun++;
-                } else if (task.currentRun < task.runs) {
+                if (task.runs < 0 || task.currentRun < task.runs) {
                     task.currentRun++;
                 } else {
                     tasks.remove(task);
@@ -55,7 +53,9 @@ public class TaskScheduler {
         }
     }
     public static void remove(ScheduledTask task) {
-        task.cancelled = true;
+        if (task != null){
+            task.cancelled = true;
+        }
         tasks.remove(task);
     }
 

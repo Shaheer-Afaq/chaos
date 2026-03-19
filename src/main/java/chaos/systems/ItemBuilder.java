@@ -11,19 +11,22 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.registry.Registry;
 import net.minecraft.registry.RegistryKey;
+import net.minecraft.registry.RegistryKeys;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Unit;
 
 import java.util.function.Consumer;
 
+import static chaos.game.GameManager.getServer;
+
 public class ItemBuilder {
     private final ItemStack stack;
     private final Registry<Enchantment> registry;
 
-    public ItemBuilder(Item item, Registry<Enchantment> registry) {
+    public ItemBuilder(Item item) {
         this.stack = new ItemStack(item);
-        this.registry = registry;
+        this.registry = getServer().getRegistryManager().getOrThrow(RegistryKeys.ENCHANTMENT);
     }
 
     public ItemBuilder name(String name, Formatting color) {
@@ -38,6 +41,11 @@ public class ItemBuilder {
 
     public <T> ItemBuilder component(ComponentType<T> type, T value) {
         stack.set(type, value);
+        return this;
+    }
+
+    public ItemBuilder maxDamage(int amount) {
+        stack.set(DataComponentTypes.MAX_DAMAGE, amount);
         return this;
     }
 
