@@ -33,7 +33,7 @@ import static chaos.util.HelperMethods.*;
 
 public class Events {
     public static void register() {
-        ServerLifecycleEvents.SERVER_STARTED.register(server -> {
+        ServerTickEvents.START_SERVER_TICK.register(server -> {
 
         });
 

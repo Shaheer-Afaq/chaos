@@ -54,12 +54,11 @@ public class GameManager {
             state = GameState.WAITING;
             Server = server;
             World = server.getOverworld();
-            Server.openToLan(GameMode.SURVIVAL, true, 0); //for testing only
+            TaskScheduler.schedule((x)-> Server.openToLan(GameMode.SURVIVAL, true, 0), 1, 1, false, null);
             setRules();
             resetArena();
             populateLists();
             clearAllEntities();
-
         });
         ServerTickEvents.START_SERVER_TICK.register(GameManager::tick);
     }
