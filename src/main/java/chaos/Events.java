@@ -10,9 +10,17 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.event.player.PlayerBlockBreakEvents;
 import net.fabricmc.fabric.api.event.player.UseBlockCallback;
 import net.minecraft.block.Blocks;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.damage.DamageTypes;
+import net.minecraft.network.packet.s2c.play.PlaySoundS2CPacket;
+import net.minecraft.network.packet.s2c.play.TitleS2CPacket;
+import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.sound.SoundCategory;
+import net.minecraft.sound.SoundEvent;
+import net.minecraft.sound.SoundEvents;
 import net.minecraft.state.property.Properties;
 import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
@@ -27,6 +35,8 @@ import net.minecraft.world.rule.GameRules;
 import java.util.Objects;
 import java.util.UUID;
 
+import static chaos.game.GameConfig.LOBBY_POS;
+import static chaos.game.GameConfig.MIN_PLAYERS;
 import static chaos.game.GameManager.*;
 import static chaos.util.HelperMethods.*;
 
@@ -39,17 +49,26 @@ public class Events {
 
         ServerPlayerEvents.JOIN.register((player) -> {
             players.add(player.getUuid());
+            player.stopRiding();
+            Entity vehicle = player.getVehicle();
+            if (vehicle != null) {vehicle.discard();}
+
             toLobby(player);
             sendTitle(player, "Welcome to Chaos!", Formatting.GOLD);
-//            Objects.requireNonNull(player.getEntityWorld().getServer()).execute(()->{
-//                toLobby(player);
-//            });
         });
 
         ServerPlayerEvents.LEAVE.register(player -> {
             players.remove(player.getUuid());
             activePlayers.remove(player.getUuid());
             playerData.remove(player.getUuid());
+        });
+
+        ServerLivingEntityEvents.AFTER_DEATH.register((entity, damageSource) -> {
+            if (entity instanceof ServerPlayerEntity) {
+                for (UUID uuid: players){
+                    sendSound(getPlayer(uuid), SoundEvents.ENTITY_WITHER_SPAWN);
+                }
+            }
         });
 
         ServerPlayerEvents.AFTER_RESPAWN.register((oldplayer, newplayer, alive) -> {
@@ -76,8 +95,8 @@ public class Events {
             if (pos.equals(GameConfig.START_BUTTON) && world.getBlockState(pos).getBlock() == Blocks.STONE_BUTTON && !world.getBlockState(pos).get(Properties.POWERED)){
                 if (state != GameState.WAITING) {
                     player.sendMessage(Text.literal("Game is already running").formatted(Formatting.RED), true);
-//                } else if (players.size() < MIN_PLAYERS) {
-                } else if (false) {
+                } else if (players.size() < MIN_PLAYERS) {
+//                } else if (false) {
                     player.sendMessage(Text.literal("Not enough players!").formatted(Formatting.RED), true);
                 } else {
                     state = GameState.STARTING;
@@ -85,6 +104,7 @@ public class Events {
                         for (UUID uuid: players){
                             if (x != 3){
                                 sendTitle(getPlayer(uuid), String.valueOf(3-x), Formatting.YELLOW);
+                                sendSound(getPlayer(uuid), SoundEvents.BLOCK_NOTE_BLOCK_BELL.value());
                             }
                         }
                     }, 20, 4, true, GameManager::startGame);

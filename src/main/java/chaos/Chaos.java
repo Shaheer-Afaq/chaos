@@ -16,6 +16,5 @@ public class Chaos implements ModInitializer {
 		TaskScheduler.init();
 		Events.register();
 		GameManager.init();
-		LOGGER.info("Hello Fabric world!");
 	}
 }

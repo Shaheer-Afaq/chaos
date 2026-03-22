@@ -1,29 +1,38 @@
 package chaos.game;
 
 
+import chaos.systems.DisasterSystem;
 import chaos.systems.GroundDecay;
-import chaos.systems.PlayerSystem;
+import chaos.systems.ItemSystem;
 import chaos.util.TaskScheduler;
 import chaos.util.TaskScheduler.ScheduledTask;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerWorldEvents;
+import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
+import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.sound.SoundEvent;
+import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
-import net.minecraft.world.Difficulty;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Vec3i;
 import net.minecraft.world.GameMode;
-import net.minecraft.world.rule.GameRules;
 
 import java.util.*;
 
-import static chaos.systems.PlayerSystem.populateLists;
+import static chaos.game.GameConfig.*;
+import static chaos.systems.ItemSystem.populateLists;
 import static chaos.util.HelperMethods.*;
 
 public class GameManager {
+
 
     public enum GameState {
         STARTING,
@@ -47,7 +56,7 @@ public class GameManager {
         return playerData.get(player.getUuid());
     }
 
-    private static ScheduledTask weaponTask;
+    private static ScheduledTask timeLimitTask;
 
     public static void init() {
         ServerLifecycleEvents.SERVER_STARTED.register(server -> {
@@ -56,29 +65,28 @@ public class GameManager {
             World = server.getOverworld();
             TaskScheduler.schedule((x)-> Server.openToLan(GameMode.SURVIVAL, true, 25565), 20, 1, false, null);
             setRules();
-            resetArena();
             populateLists();
+            resetArena();
             clearAllEntities();
+        });
+        ServerWorldEvents.LOAD.register((server, world) -> {
         });
         ServerTickEvents.START_SERVER_TICK.register(GameManager::tick);
     }
 
     public static void tick(MinecraftServer server) {
         if (state == GameState.RUNNING) {
-            PlayerSystem.tick();
-
             if (activePlayers.size() <= 1){
                 endGame();
             }
-            var active = "";
             for (UUID uuid : activePlayers) {
                 ServerPlayerEntity player = getPlayer(uuid);
-                if (player.getY() < 70){
+                if (player.getY() < VOID_Y){
                     player.damage(World, World.getDamageSources().outOfWorld(), 9999);
                 }
                 PlayerData playerData = getData(player);
 
-                playerData.messages.set(1, " Health: ".concat(String.format("%.2f", player.getHealth()*5)).concat("%"));
+                playerData.messages.set(1, " Health: " + String.format("%.2f", player.getHealth()*5) + "%");
                 List<String> messages = playerData.messages;
 
                 playerData.message = Text.literal(messages.getFirst()).formatted(Formatting.YELLOW).formatted(Formatting.BOLD)
@@ -86,33 +94,40 @@ public class GameManager {
                                     .append(Text.literal(messages.get(2)).formatted(Formatting.BLUE).formatted(Formatting.BOLD));
 
                 player.sendMessage(playerData.message, true);
-                active = active.concat(String.valueOf(player.getName().getString())).concat(", ");
             }
-            System.out.println("Active Players: ".concat(active));
         }
-
 
     }
 
     public static void startGame() {
         state = GameState.RUNNING;
-        clearAllEntities();
         resetArena();
-        PlayerSystem.start();
-//        GroundDecay.start();
-
+        clearAllEntities();
+        ItemSystem.start();
+        DisasterSystem.start();
+        GroundDecay.start();
+        int i = 0;
         for (UUID uuid : players) {
+            double angle = 2 * Math.PI * i / players.size();
             ServerPlayerEntity player = getPlayer(uuid);
-            toArena(player);
+            toArena(player, new BlockPos(
+                    (int) (ARENA_POS.getX() + SPAWN_RADIUS * Math.cos(angle)),
+                    ARENA_POS.getY(),
+                    (int) (ARENA_POS.getZ() + SPAWN_RADIUS * Math.sin(angle))
+            ));
+            sendSound(player, SoundEvents.ENTITY_ENDER_DRAGON_AMBIENT);
+            i++;
         }
+        timeLimitTask = TaskScheduler.schedule()
     }
 
     public static void endGame() {
         state = GameState.ENDING;
-        PlayerSystem.stop();
+        ItemSystem.stop();
         GroundDecay.stop();
-        resetArena();
+        DisasterSystem.stop();
         clearAllEntities();
+        resetArena();
         if (!activePlayers.isEmpty()){
             ServerPlayerEntity winner = getPlayer(activePlayers.iterator().next());
             sendTitle(winner, "You Won!", Formatting.GREEN);
@@ -125,7 +140,7 @@ public class GameManager {
         }
     }
 
-    public static void toArena(ServerPlayerEntity player) {
+    public static void toArena(ServerPlayerEntity player, Vec3i pos) {
         activePlayers.add(player.getUuid());
         playerData.put(player.getUuid(), new PlayerData());
 
@@ -133,12 +148,14 @@ public class GameManager {
         player.heal(20);
         player.getInventory().clear();
         player.addStatusEffect(new StatusEffectInstance(StatusEffects.SATURATION, 15 * 60 * 20, 10, true, false));
-        player.teleport(
-                GameConfig.ARENA_POS.getX() + 0.5,
-                GameConfig.ARENA_POS.getY(),
-                GameConfig.ARENA_POS.getZ() + 0.5,
-                false
-        );
+
+        player.equipStack(EquipmentSlot.HEAD,  new ItemStack(Items.LEATHER_HELMET));
+        player.equipStack(EquipmentSlot.CHEST,  new ItemStack(Items.LEATHER_CHESTPLATE));
+        player.equipStack(EquipmentSlot.LEGS,  new ItemStack(Items.LEATHER_LEGGINGS));
+        player.equipStack(EquipmentSlot.FEET,  new ItemStack(Items.LEATHER_BOOTS));
+        player.equipStack(EquipmentSlot.MAINHAND, new ItemStack(Items.WOODEN_SWORD));
+
+        player.teleport(pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5, false);
     }
 
     public static void toLobby(ServerPlayerEntity player) {

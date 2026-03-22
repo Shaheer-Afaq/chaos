@@ -17,11 +17,17 @@ import static chaos.util.HelperMethods.map;
 
 public class GroundDecay {
     private static TaskScheduler.ScheduledTask decayTask;
+    private static TaskScheduler.ScheduledTask delayTask;
 
     public static void start(){
-        decayTask = TaskScheduler.schedule(GroundDecay::decay, (MAX_TIME/30)*20, 30, false, null);
+        delayTask = TaskScheduler.schedule((x)->{
+            decayTask = TaskScheduler.schedule(GroundDecay::decay, 8*20, 30, false, null);
+        }, 600*20, 1, false, null);
     }
-    public static void stop(){TaskScheduler.remove(decayTask);}
+    public static void stop(){
+        TaskScheduler.remove(delayTask);
+        TaskScheduler.remove(decayTask);
+    }
 
     public static void decay(int currentRun) {
         int index = map(currentRun, 1, 30, DECAY_MAX, DECAY_MIN);

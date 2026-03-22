@@ -9,7 +9,7 @@ import java.util.function.IntConsumer;
 
 public class TaskScheduler {
 
-    private static final List<ScheduledTask> tasks = new ArrayList<>();
+    public static final List<ScheduledTask> tasks = new ArrayList<>();
 
     public static void init() {
         ServerTickEvents.START_SERVER_TICK.register(server -> tick());
@@ -53,10 +53,10 @@ public class TaskScheduler {
         }
     }
     public static void remove(ScheduledTask task) {
-        if (task != null){
+        if (task != null && tasks.contains(task)){
             task.cancelled = true;
+            tasks.remove(task);
         }
-        tasks.remove(task);
     }
 
     public static class ScheduledTask {
