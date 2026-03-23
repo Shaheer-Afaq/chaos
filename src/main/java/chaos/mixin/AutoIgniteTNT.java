@@ -24,7 +24,7 @@ public class AutoIgniteTNT {
     private void chaos$instantPrimeTnt(World world, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack itemStack, CallbackInfo ci) {
         if (state.getBlock() instanceof TntBlock) {
             if (!world.isClient()) {
-                TntEntity tnt = new TntEntity(world, (double)pos.getX() + (double)0.5F, (double)pos.getY(), (double)pos.getZ() + (double)0.5F, placer);
+                TntEntity tnt = new TntEntity(world, (double)pos.getX() + (double)0.5F, pos.getY(), (double)pos.getZ() + (double)0.5F, placer);
                 tnt.setFuse(40);
                 world.spawnEntity(tnt);
                 world.emitGameEvent(placer, GameEvent.PRIME_FUSE, pos);

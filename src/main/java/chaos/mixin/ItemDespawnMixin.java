@@ -15,7 +15,7 @@ public class ItemDespawnMixin {
 
     @Inject(method = "tick", at = @At("TAIL"))
     private void quickDespawn(CallbackInfo ci) {
-        if (this.itemAge >= 80) {
+        if (this.itemAge >= 60) {
             ItemEntity self = (ItemEntity) (Object) this;
             self.discard();
         }

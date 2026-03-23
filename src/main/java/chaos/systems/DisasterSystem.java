@@ -3,31 +3,16 @@ package chaos.systems;
 import chaos.game.GameManager;
 import chaos.mixin.CreeperAccessor;
 import chaos.util.TaskScheduler;
-import net.minecraft.component.DataComponentTypes;
-import net.minecraft.component.type.AttributeModifierSlot;
-import net.minecraft.component.type.AttributeModifiersComponent;
-import net.minecraft.component.type.NbtComponent;
 import net.minecraft.entity.*;
-import net.minecraft.entity.attribute.EntityAttributeModifier;
 import net.minecraft.entity.attribute.EntityAttributes;
-import net.minecraft.entity.data.TrackedData;
-import net.minecraft.entity.effect.StatusEffectInstance;
-import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.entity.mob.CreeperEntity;
 import net.minecraft.entity.mob.ZombieEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtElement;
-import net.minecraft.nbt.NbtList;
-import net.minecraft.predicate.NbtPredicate;
-import net.minecraft.predicate.component.CustomDataPredicate;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.sound.SoundEvent;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
-import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 
@@ -54,7 +39,7 @@ public class DisasterSystem {
 
     public static void start(){
         stop();
-        delayTask = TaskScheduler.schedule((x)->{
+        delayTask = TaskScheduler.schedule(x->{
             disasterTask = TaskScheduler.schedule(DisasterSystem::DisasterSystemTick, 100, -1, true, null);
         }, 40*20, 1, false, null);
     }

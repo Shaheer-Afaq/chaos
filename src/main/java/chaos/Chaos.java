@@ -1,5 +1,6 @@
 package chaos;
 
+import chaos.game.Events;
 import chaos.game.GameManager;
 import chaos.util.TaskScheduler;
 import net.fabricmc.api.ModInitializer;
@@ -16,5 +17,6 @@ public class Chaos implements ModInitializer {
 		TaskScheduler.init();
 		Events.register();
 		GameManager.init();
+		LOGGER.info(MOD_ID + " has been initialized!");
 	}
 }

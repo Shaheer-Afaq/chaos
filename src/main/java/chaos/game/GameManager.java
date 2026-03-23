@@ -29,7 +29,6 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.math.Vec3i;
 import net.minecraft.world.GameMode;
 
-import java.sql.Time;
 import java.util.*;
 
 import static chaos.game.GameConfig.*;
@@ -76,8 +75,6 @@ public class GameManager {
             populateLists();
             resetArena();
             Server.execute(HelperMethods::clearAllEntities);
-        });
-        ServerWorldEvents.LOAD.register((server, world) -> {
         });
         ServerTickEvents.START_SERVER_TICK.register(GameManager::tick);
     }
@@ -130,9 +127,7 @@ public class GameManager {
             sendSound(player, SoundEvents.ENTITY_ENDER_DRAGON_AMBIENT);
             i++;
         }
-        timeLimitTask = TaskScheduler.schedule((x)->{
-            endGame();
-        }, MAX_TIME, 1, false,  null);
+        timeLimitTask = TaskScheduler.schedule(x-> endGame(), MAX_TIME, 1, false,  null);
     }
 
     public static void endGame() {
@@ -184,7 +179,6 @@ public class GameManager {
         player.changeGameMode(GameMode.CREATIVE);
         player.heal(20);
         player.getInventory().clear();
-        player.addStatusEffect(new StatusEffectInstance(StatusEffects.SATURATION, 15 * 60 * 20, 10, true, false));
         player.teleport(pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5, false);
         player.lookAt(EntityAnchorArgumentType.EntityAnchor.EYES, Vec3d.of(ARENA_POS));
 

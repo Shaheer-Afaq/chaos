@@ -1,13 +1,9 @@
 package chaos.systems;
 
 import chaos.util.TaskScheduler;
-import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
-import net.minecraft.item.Items;
 import net.minecraft.util.math.BlockPos;
-
-import java.util.List;
 
 import static chaos.game.GameConfig.DECAY_MAX;
 import static chaos.game.GameConfig.DECAY_MIN;
@@ -21,7 +17,7 @@ public class GroundDecay {
 
     public static void start(){
         stop();
-        delayTask = TaskScheduler.schedule((x)->{
+        delayTask = TaskScheduler.schedule(x->{
         decayTask = TaskScheduler.schedule(GroundDecay::decay, 8*20, 30, false, null);
         }, MAX_TIME - 300*20, 1, false, null);
     }

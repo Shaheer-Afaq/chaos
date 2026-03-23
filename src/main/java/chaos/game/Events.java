@@ -1,26 +1,16 @@
-package chaos;
+package chaos.game;
 
-import chaos.game.GameConfig;
-import chaos.game.GameManager;
 import chaos.util.TaskScheduler;
 import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
 import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
-import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
-import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
-import net.fabricmc.fabric.api.event.player.BlockEvents;
 import net.fabricmc.fabric.api.event.player.PlayerBlockBreakEvents;
 import net.fabricmc.fabric.api.event.player.UseBlockCallback;
 import net.minecraft.block.Blocks;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.damage.DamageTypes;
-import net.minecraft.network.packet.s2c.play.PlaySoundS2CPacket;
-import net.minecraft.network.packet.s2c.play.TitleS2CPacket;
-import net.minecraft.registry.entry.RegistryEntry;
+import net.minecraft.entity.effect.StatusEffectInstance;
+import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.sound.SoundCategory;
-import net.minecraft.sound.SoundEvent;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.state.property.Properties;
 import net.minecraft.text.Text;
@@ -28,15 +18,11 @@ import net.minecraft.util.ActionResult;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Hand;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.Difficulty;
 import net.minecraft.world.GameMode;
-import net.minecraft.world.World;
-import net.minecraft.world.rule.GameRules;
 
 import java.util.Objects;
 import java.util.UUID;
 
-import static chaos.game.GameConfig.LOBBY_POS;
 import static chaos.game.GameConfig.MIN_PLAYERS;
 import static chaos.game.GameManager.*;
 import static chaos.util.HelperMethods.*;
@@ -44,15 +30,10 @@ import static chaos.util.HelperMethods.*;
 
 public class Events {
     public static void register() {
-        ServerTickEvents.START_SERVER_TICK.register(server -> {
-
-        });
-        ServerLifecycleEvents.BEFORE_SAVE.register((l, i, u)->{
-            clearAllEntities();
-        });
-
         ServerPlayerEvents.JOIN.register((player) -> {
             players.add(player.getUuid());
+            player.addStatusEffect(new StatusEffectInstance(
+                    StatusEffects.SATURATION, -1, 255, false, false));
             updateTimebar();
             toLobby(player);
             sendTitle(player, "Welcome to Chaos!", Formatting.GOLD);
