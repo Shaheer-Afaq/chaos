@@ -7,6 +7,7 @@ import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
 import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
+import net.fabricmc.fabric.api.event.player.BlockEvents;
 import net.fabricmc.fabric.api.event.player.PlayerBlockBreakEvents;
 import net.fabricmc.fabric.api.event.player.UseBlockCallback;
 import net.minecraft.block.Blocks;
@@ -46,18 +47,24 @@ public class Events {
         ServerTickEvents.START_SERVER_TICK.register(server -> {
 
         });
+        ServerLifecycleEvents.BEFORE_SAVE.register((l, i, u)->{
+            clearAllEntities();
+        });
 
         ServerPlayerEvents.JOIN.register((player) -> {
             players.add(player.getUuid());
-            player.stopRiding();
-            Entity vehicle = player.getVehicle();
-            if (vehicle != null) {vehicle.discard();}
-
             toLobby(player);
             sendTitle(player, "Welcome to Chaos!", Formatting.GOLD);
         });
 
         ServerPlayerEvents.LEAVE.register(player -> {
+            if (player.hasVehicle()) {
+                Entity vehicle = player.getVehicle();
+                player.stopRiding();
+                if (vehicle != null) {
+                    vehicle.discard();
+                }
+            }
             players.remove(player.getUuid());
             activePlayers.remove(player.getUuid());
             playerData.remove(player.getUuid());
@@ -96,7 +103,6 @@ public class Events {
                 if (state != GameState.WAITING) {
                     player.sendMessage(Text.literal("Game is already running").formatted(Formatting.RED), true);
                 } else if (players.size() < MIN_PLAYERS) {
-//                } else if (false) {
                     player.sendMessage(Text.literal("Not enough players!").formatted(Formatting.RED), true);
                 } else {
                     state = GameState.STARTING;
@@ -112,10 +118,6 @@ public class Events {
             }
             return ActionResult.PASS;
         }));
-
-        ServerTickEvents.END_SERVER_TICK.register(server -> {
-//            System.out.println(String.valueOf(activePlayers.size()).concat(String.valueOf(players.size())));
-        });
 
         PlayerBlockBreakEvents.BEFORE.register((world, player, blockPos, state, entity)->{
             return Objects.equals(player.getGameMode(), GameMode.CREATIVE);

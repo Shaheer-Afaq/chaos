@@ -9,6 +9,7 @@ import net.minecraft.component.type.NbtComponent;
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.TypedEntityData;
+import net.minecraft.entity.attribute.EntityAttribute;
 import net.minecraft.entity.attribute.EntityAttributeModifier;
 import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.item.Item;
@@ -17,6 +18,7 @@ import net.minecraft.nbt.NbtCompound;
 import net.minecraft.registry.Registry;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
+import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
@@ -70,21 +72,6 @@ public class ItemBuilder {
         return this;
     }
 
-    public ItemBuilder stats(double damage, double speed) {
-        AttributeModifiersComponent.Builder builder = AttributeModifiersComponent.builder();
-
-        builder.add(EntityAttributes.ATTACK_DAMAGE,
-                new EntityAttributeModifier(Identifier.of("chaos", "damage"), damage - 1.0, EntityAttributeModifier.Operation.ADD_VALUE),
-                AttributeModifierSlot.MAINHAND);
-
-        builder.add(EntityAttributes.ATTACK_SPEED,
-                new EntityAttributeModifier(Identifier.of("chaos", "speed"), speed - 4.0, EntityAttributeModifier.Operation.ADD_VALUE),
-                AttributeModifierSlot.MAINHAND);
-
-        stack.set(DataComponentTypes.ATTRIBUTE_MODIFIERS, builder.build());
-        return this;
-    }
-
     public ItemBuilder entityData(EntityType<?> type, Consumer<NbtCompound> nbtModifier) {
         NbtCompound nbt = new NbtCompound();
         nbtModifier.accept(nbt);
@@ -93,8 +80,21 @@ public class ItemBuilder {
         return component(DataComponentTypes.ENTITY_DATA, typedData);
     }
 
-    public ItemBuilder unbreakable() {
-        stack.set(DataComponentTypes.UNBREAKABLE, Unit.INSTANCE);
+    public ItemBuilder attribute(RegistryEntry<EntityAttribute> attribute, double amount, EntityAttributeModifier.Operation operation, AttributeModifierSlot slot) {
+        AttributeModifiersComponent current = stack.getOrDefault(DataComponentTypes.ATTRIBUTE_MODIFIERS, AttributeModifiersComponent.DEFAULT);
+
+        EntityAttributeModifier modifier = new EntityAttributeModifier(
+                Identifier.of("chaos",
+                        attribute.getKey().map(key -> key.getValue().getPath())
+                        .orElse("unknown")),
+                        amount, operation);
+
+        stack.set(DataComponentTypes.ATTRIBUTE_MODIFIERS, current.with(attribute, modifier, slot));
+        return this;
+    }
+
+    public ItemBuilder stackable(int max_stack_size){
+        stack.set(DataComponentTypes.MAX_STACK_SIZE, max_stack_size);
         return this;
     }
 

@@ -20,9 +20,11 @@ public class GroundDecay {
     private static TaskScheduler.ScheduledTask delayTask;
 
     public static void start(){
+        stop();
         delayTask = TaskScheduler.schedule((x)->{
-            decayTask = TaskScheduler.schedule(GroundDecay::decay, 8*20, 30, false, null);
-        }, 600*20, 1, false, null);
+
+        decayTask = TaskScheduler.schedule(GroundDecay::decay, 8*20, 30, false, null);
+        }, MAX_TIME - 300*20, 1, false, null);
     }
     public static void stop(){
         TaskScheduler.remove(delayTask);
@@ -30,7 +32,7 @@ public class GroundDecay {
     }
 
     public static void decay(int currentRun) {
-        int index = map(currentRun, 1, 30, DECAY_MAX, DECAY_MIN);
+        int index = map(currentRun, 1, 31, DECAY_MAX, DECAY_MIN);
         BlockState air = Blocks.AIR.getDefaultState();
 
         for (int i = -index; i <= index; i++) {
@@ -49,10 +51,6 @@ public class GroundDecay {
                 }
             }
         }
-    }
-
-    public static void tick(){
-
     }
 
 }

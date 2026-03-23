@@ -72,6 +72,7 @@ public class HelperMethods {
         getWorld().getGameRules().setValue(GameRules.KEEP_INVENTORY, true, getServer());
         getWorld().getGameRules().setValue(GameRules.NATURAL_HEALTH_REGENERATION, false, getServer());
         getWorld().getGameRules().setValue(GameRules.ANNOUNCE_ADVANCEMENTS, false, getServer());
+        getWorld().getGameRules().setValue(GameRules.DO_MOB_LOOT, false, getServer());
     }
 
     public static int map(int value, int inMin, int inMax, int outMin, int outMax) {

@@ -3,9 +3,10 @@
   "package": "chaos.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
+    "CreeperAccessor",
     "ExplosionMixin",
     "ItemDespawnMixin",
-    "LessDamageMixin",
+    "LessDamageMixin"
   ],
   "injectors": {
     "defaultRequire": 1

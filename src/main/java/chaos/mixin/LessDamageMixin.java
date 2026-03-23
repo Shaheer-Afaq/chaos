@@ -23,6 +23,6 @@ public class LessDamageMixin {
             argsOnly = true
     )
     private float reduceDamage(float amount) {
-        return amount * 0.1f;
+        return amount * 0.05f;
     }
 }

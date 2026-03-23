@@ -24,6 +24,7 @@ import java.util.*;
 
 import static chaos.game.GameManager.*;
 import static chaos.util.HelperMethods.getPlayer;
+import static chaos.util.HelperMethods.sendSound;
 
 public class ItemSystem {
     private static TaskScheduler.ScheduledTask ItemSystemTick;
@@ -37,22 +38,23 @@ public class ItemSystem {
     }
 
     public static void start(){
-        ItemSystemTick = TaskScheduler.schedule(ItemSystem::ItemSystemTick, 100, -1, true, null);
+        ItemSystemTick = TaskScheduler.schedule(ItemSystem::ItemSystemTick, 120, -1, true, null);
     }
     public static void stop(){ TaskScheduler.remove(ItemSystemTick);}
 
     public static void ItemSystemTick(int currentRun){
+        double roll = Math.random();
 
-//        if (Math.random() < 0.1){ //0.1
-//            giveItem(ItemType.Armor);
-//        }
-        if (Math.random() < 0.333){ //0.3
+        if (roll < 0.2) {
+            giveItem(ItemType.Armor);
+        }
+        else if (roll < 0.4) {
             giveItem(ItemType.Weapon);
         }
-        else if (Math.random() < 0.6){ //0.4
+        else if (roll < 0.6) {
             giveItem(ItemType.Consumable);
         }
-        else if (Math.random() < 0.8){ //0.3
+        else if (roll < 0.8){
             giveItem(ItemType.Utility);
         }
     }
@@ -77,13 +79,9 @@ public class ItemSystem {
 
                 if (!player.getInventory().insertStack(randomItem)) { player.dropItem(randomItem, false);}
 
-                player.playSound(SoundEvents.BLOCK_TRIAL_SPAWNER_EJECT_ITEM, 1f, 1f);
+                sendSound(player, SoundEvents.BLOCK_TRIAL_SPAWNER_EJECT_ITEM);
             }
         });
-    }
-
-    public static class Ability {
-
     }
 
     public static void populateLists(){
@@ -167,7 +165,7 @@ public class ItemSystem {
                 FireworkExplosionComponent.Type.BURST,
                 IntList.of(0x545454),
                 IntList.of(0x424242),
-                false,
+                true,
                 false
         );
         ItemStack rocket = new ItemBuilder(Items.FIREWORK_ROCKET, 1)
@@ -175,13 +173,10 @@ public class ItemSystem {
                 .build();
         weapons.add(new ItemBuilder(Items.CROSSBOW, 1)
                 .name("Grenade Launcher", Formatting.DARK_AQUA)
-                .enchant(Enchantments.MULTISHOT, 3)
                 .maxDura(1)
                 .component(DataComponentTypes.CHARGED_PROJECTILES, ChargedProjectilesComponent.of(List.of(rocket, rocket, rocket)))
                 .build());
     }
-
-
     public static void addConsumables(){
         List<ItemStack> consumables = items.get(ItemType.Consumable);
         consumables.add(new ItemBuilder(Items.WIND_CHARGE, 4)
@@ -194,12 +189,15 @@ public class ItemSystem {
         );
         consumables.add(new ItemBuilder(Items.SPLASH_POTION, 1)
                 .name("Wings", Formatting.AQUA)
+                .stackable(8)
                 .component(DataComponentTypes.POTION_CONTENTS, new PotionContentsComponent(Optional.empty(), Optional.of(0xb7b7b7),
-                            List.of(new StatusEffectInstance(StatusEffects.LEVITATION, 10 * 20, 1)), Optional.empty()))
+                            List.of(new StatusEffectInstance(StatusEffects.LEVITATION, 10 * 20, 1), new StatusEffectInstance(StatusEffects.LEVITATION, 10 * 20, 1)),
+                        Optional.empty()))
                 .build()
         );
         consumables.add(new ItemBuilder(Items.POTION, 1)
                 .name("Warrior's drink", Formatting.YELLOW)
+                .stackable(8)
                 .component(DataComponentTypes.POTION_CONTENTS, new PotionContentsComponent(Optional.empty(), Optional.of(0xc44100),
                             List.of(
                                 new StatusEffectInstance(StatusEffects.STRENGTH, 25 * 20, 1),
@@ -208,12 +206,30 @@ public class ItemSystem {
                             ), Optional.empty()))
                 .build()
         );
-        consumables.add(new ItemBuilder(Items.ARROW, 8).name("Arrow", Formatting.BLUE).build());
+        consumables.add(new ItemBuilder(Items.SPLASH_POTION, 1)
+                .name("Turtle soup", Formatting.DARK_GREEN)
+                .stackable(8)
+                .component(DataComponentTypes.POTION_CONTENTS, new PotionContentsComponent(Optional.empty(), Optional.of(0x0a9600),
+                            List.of(
+                                new StatusEffectInstance(StatusEffects.RESISTANCE, 10 * 20, 2)
+                            ), Optional.empty()))
+                .build()
+        );
+        consumables.add(new ItemBuilder(Items.SPLASH_POTION, 1)
+                .name("Tears of Ghast", Formatting.LIGHT_PURPLE)
+                .stackable(8)
+                .component(DataComponentTypes.POTION_CONTENTS, new PotionContentsComponent(Optional.empty(), Optional.of(0xff4787),
+                            List.of(
+                                new StatusEffectInstance(StatusEffects.REGENERATION, 5 * 20, 0)
+                            ), Optional.empty()))
+                .build()
+        );
     }
-
     public static void addUtilities(){
         List<ItemStack> utilities = items.get(ItemType.Utility);
 
+        utilities.add(new ItemBuilder(Items.SHIELD, 1).name("Shield", Formatting.YELLOW).maxDura(25).build());
+        utilities.add(new ItemBuilder(Items.ARROW, 8).name("Arrow", Formatting.BLUE).build());
         utilities.add(new ItemBuilder(Items.COBWEB, 8).name("Spider Web", Formatting.DARK_GRAY).build());
         utilities.add(new ItemBuilder(Items.HORSE_SPAWN_EGG, 1)
                 .name("Warhorse", Formatting.BLACK)
@@ -228,7 +244,7 @@ public class ItemSystem {
                     equipment.put("saddle", saddle);
 
                     NbtCompound armor = new NbtCompound();
-                    armor.putString("id", "minecraft:diamond_horse_armor");
+                    armor.putString("id", "minecraft:netherite_horse_armor");
                     armor.putInt("count", 1);
                     equipment.put("body", armor);
 
@@ -246,13 +262,59 @@ public class ItemSystem {
                     speed.putDouble("base", 0.5);
                     attributes.add(speed);
 
+                    NbtCompound jump_strength = new NbtCompound();
+                    jump_strength.putString("id", "minecraft:jump_strength");
+                    jump_strength.putDouble("base", 1);
+                    attributes.add(jump_strength);
+
                     tags.put("attributes", attributes);
 
                     tags.putFloat("Health", 40.0f);
                 })
                 .build());
+        utilities.add(new ItemBuilder(Items.CREEPER_SPAWN_EGG, 1)
+                .name("Bomb", Formatting.BLACK)
+                .build());
     }
     public static void addArmor(){
+        List<ItemStack> armors = items.get(ItemType.Armor);
+
+        armors.add(new ItemBuilder(Items.IRON_BOOTS, 1)
+                .name("Roller Skates",  Formatting.DARK_GRAY)
+                .desc("Doubles movement speed", Formatting.BLUE)
+                .enchant(Enchantments.PROTECTION, 3)
+                .attribute(EntityAttributes.MOVEMENT_SPEED, 1, EntityAttributeModifier.Operation.ADD_MULTIPLIED_TOTAL, AttributeModifierSlot.FEET)
+                .maxDura(15)
+                .build());
+
+        armors.add(new ItemBuilder(Items.NETHERITE_HELMET, 1)
+                .name("God Helmet",  Formatting.RED)
+                .enchant(Enchantments.PROTECTION, 5)
+                .attribute(EntityAttributes.KNOCKBACK_RESISTANCE, 1, EntityAttributeModifier.Operation.ADD_MULTIPLIED_TOTAL, AttributeModifierSlot.HEAD)
+                .maxDura(20)
+                .build());
+
+        armors.add(new ItemBuilder(Items.NETHERITE_CHESTPLATE, 1)
+                .name("God Chestplate",  Formatting.RED)
+                .enchant(Enchantments.PROTECTION, 5)
+                .attribute(EntityAttributes.KNOCKBACK_RESISTANCE, 1, EntityAttributeModifier.Operation.ADD_MULTIPLIED_TOTAL, AttributeModifierSlot.CHEST)
+                .maxDura(20)
+                .build());
+
+        armors.add(new ItemBuilder(Items.NETHERITE_CHESTPLATE, 1)
+                .name("God Chestplate",  Formatting.RED)
+                .enchant(Enchantments.PROTECTION, 5)
+                .attribute(EntityAttributes.KNOCKBACK_RESISTANCE, 1, EntityAttributeModifier.Operation.ADD_MULTIPLIED_TOTAL, AttributeModifierSlot.CHEST)
+                .maxDura(20)
+                .build());
+
+        armors.add(new ItemBuilder(Items.NETHERITE_CHESTPLATE, 1)
+                .name("God Chestplate",  Formatting.RED)
+                .enchant(Enchantments.PROTECTION, 5)
+                .attribute(EntityAttributes.KNOCKBACK_RESISTANCE, 1, EntityAttributeModifier.Operation.ADD_MULTIPLIED_TOTAL, AttributeModifierSlot.CHEST)
+                .maxDura(20)
+                .build());
+
 
     }
 

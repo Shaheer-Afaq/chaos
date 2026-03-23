@@ -4,6 +4,7 @@ package chaos.game;
 import chaos.systems.DisasterSystem;
 import chaos.systems.GroundDecay;
 import chaos.systems.ItemSystem;
+import chaos.util.HelperMethods;
 import chaos.util.TaskScheduler;
 import chaos.util.TaskScheduler.ScheduledTask;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
@@ -17,7 +18,6 @@ import net.minecraft.item.Items;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
-import net.minecraft.sound.SoundEvent;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
@@ -67,7 +67,7 @@ public class GameManager {
             setRules();
             populateLists();
             resetArena();
-            clearAllEntities();
+            Server.execute(HelperMethods::clearAllEntities);
         });
         ServerWorldEvents.LOAD.register((server, world) -> {
         });
@@ -118,26 +118,48 @@ public class GameManager {
             sendSound(player, SoundEvents.ENTITY_ENDER_DRAGON_AMBIENT);
             i++;
         }
-        timeLimitTask = TaskScheduler.schedule()
+        timeLimitTask = TaskScheduler.schedule((x)->{
+            endGame();
+        }, MAX_TIME, 1, false,  null);
     }
 
     public static void endGame() {
         state = GameState.ENDING;
+        TaskScheduler.remove(timeLimitTask);
         ItemSystem.stop();
         GroundDecay.stop();
         DisasterSystem.stop();
         clearAllEntities();
-        resetArena();
-        if (!activePlayers.isEmpty()){
-            ServerPlayerEntity winner = getPlayer(activePlayers.iterator().next());
-            sendTitle(winner, "You Won!", Formatting.GREEN);
-            TaskScheduler.schedule((x)->{
-                toLobby(winner);
-                state = GameState.WAITING;
+        if (!activePlayers.isEmpty()) {
+            UUID winnerUUID = activePlayers.iterator().next();
+            if (activePlayers.size() > 1) {
+                float highest = getPlayer(winnerUUID).getHealth();
+                for (UUID uuid : new ArrayList<>(activePlayers)) {
+                    if (getPlayer(uuid).getHealth() > highest) {
+                        winnerUUID = uuid;
+                        highest = getPlayer(uuid).getHealth();
+                    }
+                    toLobby(getPlayer(uuid));
+                    getPlayer(uuid).sendMessage(Text.literal("Times Up!").formatted(Formatting.RED).formatted(Formatting.BOLD), true);
+                    getPlayer(uuid).sendMessage(Text.literal("=========").formatted(Formatting.RED).formatted(Formatting.BOLD));
+                    getPlayer(uuid).sendMessage(Text.literal("Times Up!").formatted(Formatting.RED).formatted(Formatting.BOLD));
+                    getPlayer(uuid).sendMessage(Text.literal("=========").formatted(Formatting.RED).formatted(Formatting.BOLD));
+                }
+            } else {toLobby(getPlayer(winnerUUID));}
+
+            ServerPlayerEntity winner = getPlayer(winnerUUID);
+            sendTitle((winner), "You Won!", Formatting.GREEN);
+            for (UUID uuid : players) {
+                getPlayer(uuid).sendMessage(Text.literal("==========================").formatted(Formatting.GREEN).formatted(Formatting.BOLD));
+                getPlayer(uuid).sendMessage(Text.literal(winner.getName().getString()).formatted(Formatting.GOLD).formatted(Formatting.BOLD)
+                                .append(Text.literal(" won the game!").formatted(Formatting.AQUA)));
+                getPlayer(uuid).sendMessage(Text.literal("==========================").formatted(Formatting.GREEN).formatted(Formatting.BOLD));
+            }
+            TaskScheduler.schedule((x) -> {
             }, 2 * 20, 1, false, null);
-        }else{
-            state = GameState.WAITING;
         }
+        state = GameState.WAITING;
+
     }
 
     public static void toArena(ServerPlayerEntity player, Vec3i pos) {
@@ -145,6 +167,7 @@ public class GameManager {
         playerData.put(player.getUuid(), new PlayerData());
 
         sendTitle(player, "GO!", Formatting.RED);
+        player.changeGameMode(GameMode.CREATIVE);
         player.heal(20);
         player.getInventory().clear();
         player.addStatusEffect(new StatusEffectInstance(StatusEffects.SATURATION, 15 * 60 * 20, 10, true, false));
@@ -155,6 +178,8 @@ public class GameManager {
         player.equipStack(EquipmentSlot.FEET,  new ItemStack(Items.LEATHER_BOOTS));
         player.equipStack(EquipmentSlot.MAINHAND, new ItemStack(Items.WOODEN_SWORD));
 
+
+
         player.teleport(pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5, false);
     }
 
@@ -164,6 +189,7 @@ public class GameManager {
         player.sendMessage(Text.literal(""), true);
         player.heal(20);
         player.clearStatusEffects();
+        player.setFireTicks(0);
         player.teleport(
                 GameConfig.LOBBY_POS.getX() + 0.5,
                 GameConfig.LOBBY_POS.getY(),
