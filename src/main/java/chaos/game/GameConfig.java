@@ -14,7 +14,7 @@ public class GameConfig {
     public static final BlockPos GROUND_MAX = new BlockPos(40, 76, 40);
     public static final BlockPos ARENA_MIN = new BlockPos(-40, 77, -40);
     public static final BlockPos ARENA_MAX = new BlockPos(40, 105, 40);
-    public static final int VOID_Y = 70;
+    public static final int VOID_Y = 60;
     public static final int SPAWN_RADIUS = 10;
     public static final int DECAY_MAX = 40;
     public static final int DECAY_MIN = 10;

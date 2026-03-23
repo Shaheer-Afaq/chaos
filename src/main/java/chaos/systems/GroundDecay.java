@@ -22,7 +22,6 @@ public class GroundDecay {
     public static void start(){
         stop();
         delayTask = TaskScheduler.schedule((x)->{
-
         decayTask = TaskScheduler.schedule(GroundDecay::decay, 8*20, 30, false, null);
         }, MAX_TIME - 300*20, 1, false, null);
     }

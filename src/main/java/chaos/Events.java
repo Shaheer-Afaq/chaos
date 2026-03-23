@@ -53,6 +53,7 @@ public class Events {
 
         ServerPlayerEvents.JOIN.register((player) -> {
             players.add(player.getUuid());
+            updateTimebar();
             toLobby(player);
             sendTitle(player, "Welcome to Chaos!", Formatting.GOLD);
         });

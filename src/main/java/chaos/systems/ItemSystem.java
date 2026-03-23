@@ -101,6 +101,7 @@ public class ItemSystem {
 
         weapons.add(new ItemBuilder(Items.DIAMOND_AXE, 1)
                 .name("Fast Axe", Formatting.GOLD)
+                .maxDura(30)
                 .component(DataComponentTypes.ATTRIBUTE_MODIFIERS, AttributeModifiersComponent.builder()
                         .add(EntityAttributes.ATTACK_SPEED, new EntityAttributeModifier(Identifier.of("chaos", "attackspeed"),
                                 -2.4, EntityAttributeModifier.Operation.ADD_VALUE), AttributeModifierSlot.MAINHAND)
@@ -185,19 +186,20 @@ public class ItemSystem {
         );
         consumables.add(new ItemBuilder(Items.ENDER_PEARL, 4)
                 .name("Ender Pearl", Formatting.GREEN)
+                        .setStackSize(64)
                 .build()
         );
         consumables.add(new ItemBuilder(Items.SPLASH_POTION, 1)
                 .name("Wings", Formatting.AQUA)
-                .stackable(8)
+                .setStackSize(16)
                 .component(DataComponentTypes.POTION_CONTENTS, new PotionContentsComponent(Optional.empty(), Optional.of(0xb7b7b7),
-                            List.of(new StatusEffectInstance(StatusEffects.LEVITATION, 10 * 20, 1), new StatusEffectInstance(StatusEffects.LEVITATION, 10 * 20, 1)),
+                            List.of(new StatusEffectInstance(StatusEffects.LEVITATION, 10 * 20, 1), new StatusEffectInstance(StatusEffects.SPEED, 10 * 20, 3)),
                         Optional.empty()))
                 .build()
         );
         consumables.add(new ItemBuilder(Items.POTION, 1)
                 .name("Warrior's drink", Formatting.YELLOW)
-                .stackable(8)
+                .setStackSize(16)
                 .component(DataComponentTypes.POTION_CONTENTS, new PotionContentsComponent(Optional.empty(), Optional.of(0xc44100),
                             List.of(
                                 new StatusEffectInstance(StatusEffects.STRENGTH, 25 * 20, 1),
@@ -208,7 +210,7 @@ public class ItemSystem {
         );
         consumables.add(new ItemBuilder(Items.SPLASH_POTION, 1)
                 .name("Turtle soup", Formatting.DARK_GREEN)
-                .stackable(8)
+                .setStackSize(16)
                 .component(DataComponentTypes.POTION_CONTENTS, new PotionContentsComponent(Optional.empty(), Optional.of(0x0a9600),
                             List.of(
                                 new StatusEffectInstance(StatusEffects.RESISTANCE, 10 * 20, 2)
@@ -217,7 +219,7 @@ public class ItemSystem {
         );
         consumables.add(new ItemBuilder(Items.SPLASH_POTION, 1)
                 .name("Tears of Ghast", Formatting.LIGHT_PURPLE)
-                .stackable(8)
+                .setStackSize(16)
                 .component(DataComponentTypes.POTION_CONTENTS, new PotionContentsComponent(Optional.empty(), Optional.of(0xff4787),
                             List.of(
                                 new StatusEffectInstance(StatusEffects.REGENERATION, 5 * 20, 0)
@@ -227,10 +229,10 @@ public class ItemSystem {
     }
     public static void addUtilities(){
         List<ItemStack> utilities = items.get(ItemType.Utility);
-
+//
         utilities.add(new ItemBuilder(Items.SHIELD, 1).name("Shield", Formatting.YELLOW).maxDura(25).build());
         utilities.add(new ItemBuilder(Items.ARROW, 8).name("Arrow", Formatting.BLUE).build());
-        utilities.add(new ItemBuilder(Items.COBWEB, 8).name("Spider Web", Formatting.DARK_GRAY).build());
+        utilities.add(new ItemBuilder(Items.COBWEB, 8).name("Spider Web", Formatting.WHITE).build());
         utilities.add(new ItemBuilder(Items.HORSE_SPAWN_EGG, 1)
                 .name("Warhorse", Formatting.BLACK)
                 .entityData(EntityType.HORSE, tags -> {
@@ -273,6 +275,15 @@ public class ItemSystem {
                 })
                 .build());
         utilities.add(new ItemBuilder(Items.CREEPER_SPAWN_EGG, 1)
+                .name("Suicide Bomber", Formatting.BLACK)
+                        .entityData(EntityType.CREEPER, nbt -> {
+                            nbt.putBoolean("powered", true);
+                            nbt.putBoolean("ignited", true);
+                            nbt.putFloat("fuse", 100.0f);
+                        })
+                .build());
+
+        utilities.add(new ItemBuilder(Items.TNT, 4)
                 .name("Bomb", Formatting.BLACK)
                 .build());
     }
@@ -283,36 +294,36 @@ public class ItemSystem {
                 .name("Roller Skates",  Formatting.DARK_GRAY)
                 .desc("Doubles movement speed", Formatting.BLUE)
                 .enchant(Enchantments.PROTECTION, 3)
-                .attribute(EntityAttributes.MOVEMENT_SPEED, 1, EntityAttributeModifier.Operation.ADD_MULTIPLIED_TOTAL, AttributeModifierSlot.FEET)
-                .maxDura(15)
+                .setAttribute(EntityAttributes.MOVEMENT_SPEED, 1, EntityAttributeModifier.Operation.ADD_MULTIPLIED_TOTAL, AttributeModifierSlot.FEET)
+                .maxDura(100)
                 .build());
 
         armors.add(new ItemBuilder(Items.NETHERITE_HELMET, 1)
                 .name("God Helmet",  Formatting.RED)
                 .enchant(Enchantments.PROTECTION, 5)
-                .attribute(EntityAttributes.KNOCKBACK_RESISTANCE, 1, EntityAttributeModifier.Operation.ADD_MULTIPLIED_TOTAL, AttributeModifierSlot.HEAD)
-                .maxDura(20)
+                .setAttribute(EntityAttributes.KNOCKBACK_RESISTANCE, 100, EntityAttributeModifier.Operation.ADD_MULTIPLIED_TOTAL, AttributeModifierSlot.HEAD)
+                .maxDura(100)
                 .build());
 
         armors.add(new ItemBuilder(Items.NETHERITE_CHESTPLATE, 1)
                 .name("God Chestplate",  Formatting.RED)
                 .enchant(Enchantments.PROTECTION, 5)
-                .attribute(EntityAttributes.KNOCKBACK_RESISTANCE, 1, EntityAttributeModifier.Operation.ADD_MULTIPLIED_TOTAL, AttributeModifierSlot.CHEST)
-                .maxDura(20)
+                .setAttribute(EntityAttributes.KNOCKBACK_RESISTANCE, 100, EntityAttributeModifier.Operation.ADD_MULTIPLIED_TOTAL, AttributeModifierSlot.CHEST)
+                .maxDura(100)
                 .build());
 
-        armors.add(new ItemBuilder(Items.NETHERITE_CHESTPLATE, 1)
-                .name("God Chestplate",  Formatting.RED)
+        armors.add(new ItemBuilder(Items.NETHERITE_LEGGINGS, 1)
+                .name("God Leggings",  Formatting.RED)
                 .enchant(Enchantments.PROTECTION, 5)
-                .attribute(EntityAttributes.KNOCKBACK_RESISTANCE, 1, EntityAttributeModifier.Operation.ADD_MULTIPLIED_TOTAL, AttributeModifierSlot.CHEST)
-                .maxDura(20)
+                .setAttribute(EntityAttributes.KNOCKBACK_RESISTANCE, 100, EntityAttributeModifier.Operation.ADD_MULTIPLIED_TOTAL, AttributeModifierSlot.LEGS)
+                .maxDura(100)
                 .build());
 
-        armors.add(new ItemBuilder(Items.NETHERITE_CHESTPLATE, 1)
-                .name("God Chestplate",  Formatting.RED)
+        armors.add(new ItemBuilder(Items.NETHERITE_BOOTS, 1)
+                .name("God Boots",  Formatting.RED)
                 .enchant(Enchantments.PROTECTION, 5)
-                .attribute(EntityAttributes.KNOCKBACK_RESISTANCE, 1, EntityAttributeModifier.Operation.ADD_MULTIPLIED_TOTAL, AttributeModifierSlot.CHEST)
-                .maxDura(20)
+                .setAttribute(EntityAttributes.KNOCKBACK_RESISTANCE, 100, EntityAttributeModifier.Operation.ADD_MULTIPLIED_TOTAL, AttributeModifierSlot.FEET)
+                .maxDura(100)
                 .build());
 
 

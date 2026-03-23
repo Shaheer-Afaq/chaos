@@ -11,7 +11,6 @@ import net.minecraft.entity.EntityType;
 import net.minecraft.entity.TypedEntityData;
 import net.minecraft.entity.attribute.EntityAttribute;
 import net.minecraft.entity.attribute.EntityAttributeModifier;
-import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
@@ -22,7 +21,6 @@ import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.Unit;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,11 +31,9 @@ import static chaos.game.GameManager.getWorld;
 
 public class ItemBuilder {
     private final ItemStack stack;
-    private final Registry<Enchantment> registry;
 
     public ItemBuilder(Item item, int count) {
         this.stack = new ItemStack(item, count);
-        this.registry = getServer().getRegistryManager().getOrThrow(RegistryKeys.ENCHANTMENT);
     }
 
     public ItemBuilder name(String name, Formatting color) {
@@ -46,6 +42,7 @@ public class ItemBuilder {
     }
 
     public ItemBuilder enchant(RegistryKey<Enchantment> enchantment, int level) {
+        Registry<Enchantment> registry = getWorld().getRegistryManager().getOrThrow(RegistryKeys.ENCHANTMENT);
         stack.addEnchantment(registry.getOrThrow(enchantment), level);
         return this;
     }
@@ -80,7 +77,7 @@ public class ItemBuilder {
         return component(DataComponentTypes.ENTITY_DATA, typedData);
     }
 
-    public ItemBuilder attribute(RegistryEntry<EntityAttribute> attribute, double amount, EntityAttributeModifier.Operation operation, AttributeModifierSlot slot) {
+    public ItemBuilder setAttribute(RegistryEntry<EntityAttribute> attribute, double amount, EntityAttributeModifier.Operation operation, AttributeModifierSlot slot) {
         AttributeModifiersComponent current = stack.getOrDefault(DataComponentTypes.ATTRIBUTE_MODIFIERS, AttributeModifiersComponent.DEFAULT);
 
         EntityAttributeModifier modifier = new EntityAttributeModifier(
@@ -93,7 +90,7 @@ public class ItemBuilder {
         return this;
     }
 
-    public ItemBuilder stackable(int max_stack_size){
+    public ItemBuilder setStackSize(int max_stack_size){
         stack.set(DataComponentTypes.MAX_STACK_SIZE, max_stack_size);
         return this;
     }

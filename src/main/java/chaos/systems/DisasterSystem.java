@@ -22,12 +22,14 @@ import net.minecraft.nbt.NbtElement;
 import net.minecraft.nbt.NbtList;
 import net.minecraft.predicate.NbtPredicate;
 import net.minecraft.predicate.component.CustomDataPredicate;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.sound.SoundEvent;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Vec3d;
 
 import java.util.*;
 
@@ -46,10 +48,12 @@ public class DisasterSystem {
         disasters.put("Baby Apocalypse", DisasterSystem::babyApocalypse);
         disasters.put("Orbital Strike Canon", DisasterSystem::orbitalCanon);
         disasters.put("Explosive Surprise", DisasterSystem::explosiveSurprise);
+        disasters.put("Position Shuffle", DisasterSystem::positionShuffle);
     }
 
 
     public static void start(){
+        stop();
         delayTask = TaskScheduler.schedule((x)->{
             disasterTask = TaskScheduler.schedule(DisasterSystem::DisasterSystemTick, 100, -1, true, null);
         }, 40*20, 1, false, null);
@@ -132,6 +136,20 @@ public class DisasterSystem {
                     getWorld().spawnEntity(creeper);
                 }
             }
+        }
+    }
+    private static void positionShuffle(){
+        List<Vec3d> positions = new ArrayList<>();
+        List<ServerPlayerEntity> players = new ArrayList<>();
+        for (UUID uuid : activePlayers){
+            players.add(getPlayer(uuid));
+            positions.add(getPlayer(uuid).getEntityPos());
+        }
+        Collections.shuffle(positions);
+
+        for (int i = 0; i < players.size(); i++){
+            Vec3d newPos = positions.get((i + 1) % positions.size());
+            players.get(i).teleport(newPos.x, newPos.y, newPos.z, false);
         }
     }
 }
