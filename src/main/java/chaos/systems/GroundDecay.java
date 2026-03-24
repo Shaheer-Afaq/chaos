@@ -3,13 +3,16 @@ package chaos.systems;
 import chaos.util.TaskScheduler;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
+import net.minecraft.sound.SoundEvents;
+import net.minecraft.text.Text;
+import net.minecraft.util.Formatting;
 import net.minecraft.util.math.BlockPos;
 
-import static chaos.game.GameConfig.DECAY_MAX;
-import static chaos.game.GameConfig.DECAY_MIN;
-import static chaos.game.GameConfig.MAX_TIME;
-import static chaos.game.GameManager.getWorld;
-import static chaos.util.HelperMethods.map;
+import java.util.UUID;
+
+import static chaos.game.GameConfig.*;
+import static chaos.game.GameManager.*;
+import static chaos.util.HelperMethods.*;
 
 public class GroundDecay {
     private static TaskScheduler.ScheduledTask decayTask;
@@ -18,7 +21,13 @@ public class GroundDecay {
     public static void start(){
         stop();
         delayTask = TaskScheduler.schedule(x->{
-        decayTask = TaskScheduler.schedule(GroundDecay::decay, 8*20, 30, false, null);
+            for (UUID uuid : activePlayers){
+                sendSound(getPlayer(uuid), SoundEvents.BLOCK_BEACON_POWER_SELECT);
+                getPlayer(uuid).sendMessage(Text.literal("--------------------------").formatted(Formatting.DARK_RED, Formatting.BOLD));
+                getPlayer(uuid).sendMessage(Text.literal("Ground Decay has started!!").formatted(Formatting.RED, Formatting.BOLD));
+                getPlayer(uuid).sendMessage(Text.literal("--------------------------").formatted(Formatting.DARK_RED,  Formatting.BOLD));
+            }
+            decayTask = TaskScheduler.schedule(GroundDecay::decay, 6*20, 30, false, null);
         }, MAX_TIME - 300*20, 1, false, null);
     }
     public static void stop(){
@@ -31,7 +40,7 @@ public class GroundDecay {
         BlockState air = Blocks.AIR.getDefaultState();
 
         for (int i = -index; i <= index; i++) {
-            for (int y = 74; y <= 76; y++) {
+            for (int y = GROUND_MIN.getY(); y <= GROUND_MAX.getY(); y++) {
                 BlockPos[] positions = {
                         new BlockPos(index, y, i),
                         new BlockPos(-index, y, i),

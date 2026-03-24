@@ -63,7 +63,6 @@ public class HelperMethods {
         getWorld().getGameRules().setValue(GameRules.ADVANCE_TIME, false,getServer());
         getWorld().getGameRules().setValue(GameRules.DO_IMMEDIATE_RESPAWN, true, getServer());
         getWorld().getGameRules().setValue(GameRules.DO_MOB_SPAWNING, false, getServer());
-        getWorld().getGameRules().setValue(GameRules.DO_MOB_GRIEFING, false, getServer());
         getWorld().getGameRules().setValue(GameRules.KEEP_INVENTORY, true, getServer());
         getWorld().getGameRules().setValue(GameRules.NATURAL_HEALTH_REGENERATION, false, getServer());
         getWorld().getGameRules().setValue(GameRules.ANNOUNCE_ADVANCEMENTS, false, getServer());

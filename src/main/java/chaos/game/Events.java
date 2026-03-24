@@ -8,8 +8,6 @@ import net.fabricmc.fabric.api.event.player.UseBlockCallback;
 import net.minecraft.block.Blocks;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.damage.DamageTypes;
-import net.minecraft.entity.effect.StatusEffectInstance;
-import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.state.property.Properties;
@@ -20,9 +18,9 @@ import net.minecraft.util.Hand;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.GameMode;
 
-import java.util.Objects;
 import java.util.UUID;
 
+import static chaos.game.GameConfig.BREAKABLE_BLOCKS;
 import static chaos.game.GameConfig.MIN_PLAYERS;
 import static chaos.game.GameManager.*;
 import static chaos.util.HelperMethods.*;
@@ -32,8 +30,6 @@ public class Events {
     public static void register() {
         ServerPlayerEvents.JOIN.register((player) -> {
             players.add(player.getUuid());
-            player.addStatusEffect(new StatusEffectInstance(
-                    StatusEffects.SATURATION, -1, 255, false, false));
             updateTimebar();
             toLobby(player);
             sendTitle(player, "Welcome to Chaos!", Formatting.GOLD);
@@ -102,7 +98,8 @@ public class Events {
         }));
 
         PlayerBlockBreakEvents.BEFORE.register((world, player, blockPos, state, entity)->{
-            return Objects.equals(player.getGameMode(), GameMode.CREATIVE);
+            if (player.getGameMode() == GameMode.CREATIVE){return true;}
+            return BREAKABLE_BLOCKS.contains(state.getBlock());
         });
 
 

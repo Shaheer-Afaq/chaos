@@ -54,6 +54,7 @@ public class TaskScheduler {
     public static void remove(ScheduledTask task) {
         if (task != null && tasks.contains(task)){
             task.cancelled = true;
+            tasks.remove(task);
         }
     }
 

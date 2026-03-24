@@ -3,20 +3,21 @@ package chaos.game;
 
 import chaos.systems.DisasterSystem;
 import chaos.systems.GroundDecay;
+import chaos.systems.ItemBuilder;
 import chaos.systems.ItemSystem;
 import chaos.util.HelperMethods;
 import chaos.util.TaskScheduler;
 import chaos.util.TaskScheduler.ScheduledTask;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
-import net.fabricmc.fabric.api.event.lifecycle.v1.ServerWorldEvents;
 import net.minecraft.command.argument.EntityAnchorArgumentType;
+import net.minecraft.component.DataComponentTypes;
+import net.minecraft.component.type.DyedColorComponent;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.boss.BossBar;
 import net.minecraft.entity.boss.ServerBossBar;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
-import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -29,7 +30,9 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.math.Vec3i;
 import net.minecraft.world.GameMode;
 
+import java.awt.*;
 import java.util.*;
+import java.util.List;
 
 import static chaos.game.GameConfig.*;
 import static chaos.systems.ItemSystem.populateLists;
@@ -96,9 +99,9 @@ public class GameManager {
                 playerData.messages.set(1, " Health: " + String.format("%.2f", player.getHealth()*5) + "%");
                 List<String> messages = playerData.messages;
 
-                playerData.message = Text.literal(messages.getFirst()).formatted(Formatting.YELLOW).formatted(Formatting.BOLD)
-                                    .append(Text.literal(messages.get(1)).formatted(Formatting.GREEN).formatted(Formatting.BOLD))
-                                    .append(Text.literal(messages.get(2)).formatted(Formatting.BLUE).formatted(Formatting.BOLD));
+                playerData.message = Text.literal(messages.getFirst()).formatted(Formatting.YELLOW, Formatting.BOLD)
+                                    .append(Text.literal(messages.get(1)).formatted(Formatting.GREEN, Formatting.BOLD))
+                                    .append(Text.literal(messages.get(2)).formatted(Formatting.BLUE, Formatting.BOLD));
 
                 player.sendMessage(playerData.message, true);
             }
@@ -143,25 +146,27 @@ public class GameManager {
             if (activePlayers.size() > 1) {
                 float highest = getPlayer(winnerUUID).getHealth();
                 for (UUID uuid : new ArrayList<>(activePlayers)) {
-                    if (getPlayer(uuid).getHealth() > highest) {
+                    var player = getPlayer(uuid);
+                    if (player.getHealth() > highest) {
                         winnerUUID = uuid;
                         highest = getPlayer(uuid).getHealth();
                     }
-                    toLobby(getPlayer(uuid));
-                    getPlayer(uuid).sendMessage(Text.literal("Times Up!").formatted(Formatting.RED).formatted(Formatting.BOLD), true);
-                    getPlayer(uuid).sendMessage(Text.literal("==========").formatted(Formatting.RED).formatted(Formatting.BOLD));
-                    getPlayer(uuid).sendMessage(Text.literal("| Times Up! |").formatted(Formatting.RED).formatted(Formatting.BOLD));
-                    getPlayer(uuid).sendMessage(Text.literal("==========").formatted(Formatting.RED).formatted(Formatting.BOLD));
+                    toLobby(player);
+                    sendSound(player, SoundEvents.BLOCK_BEACON_DEACTIVATE);
+                    player.sendMessage(Text.literal("Times Up!").formatted(Formatting.RED, Formatting.BOLD), true);
+                    player.sendMessage(Text.literal("==========").formatted(Formatting.RED, Formatting.BOLD));
+                    player.sendMessage(Text.literal("| Times Up! |").formatted(Formatting.RED, Formatting.BOLD));
+                    player.sendMessage(Text.literal("==========").formatted(Formatting.RED, Formatting.BOLD));
                 }
             } else {toLobby(getPlayer(winnerUUID));}
 
             ServerPlayerEntity winner = getPlayer(winnerUUID);
             sendTitle((winner), "You Won!", Formatting.GREEN);
             for (UUID uuid : players) {
-                getPlayer(uuid).sendMessage(Text.literal("==========================").formatted(Formatting.YELLOW).formatted(Formatting.BOLD));
-                getPlayer(uuid).sendMessage(Text.literal(winner.getName().getString()).formatted(Formatting.GREEN).formatted(Formatting.BOLD)
+                getPlayer(uuid).sendMessage(Text.literal("==========================").formatted(Formatting.YELLOW, Formatting.BOLD));
+                getPlayer(uuid).sendMessage(Text.literal(winner.getName().getString()).formatted(Formatting.GREEN, Formatting.BOLD)
                                 .append(Text.literal(" won the game!").formatted(Formatting.GOLD)));
-                getPlayer(uuid).sendMessage(Text.literal("==========================").formatted(Formatting.YELLOW).formatted(Formatting.BOLD));
+                getPlayer(uuid).sendMessage(Text.literal("==========================").formatted(Formatting.YELLOW, Formatting.BOLD));
             }
             TaskScheduler.schedule((x) -> {
             }, 2 * 20, 1, false, null);
@@ -176,17 +181,18 @@ public class GameManager {
         playerData.put(player.getUuid(), new PlayerData());
 
         sendTitle(player, "GO!", Formatting.RED);
-        player.changeGameMode(GameMode.CREATIVE);
+        player.changeGameMode(GameMode.SURVIVAL);
         player.heal(20);
         player.getInventory().clear();
         player.teleport(pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5, false);
         player.lookAt(EntityAnchorArgumentType.EntityAnchor.EYES, Vec3d.of(ARENA_POS));
 
-        player.equipStack(EquipmentSlot.HEAD,  new ItemStack(Items.LEATHER_HELMET));
-        player.equipStack(EquipmentSlot.CHEST,  new ItemStack(Items.LEATHER_CHESTPLATE));
-        player.equipStack(EquipmentSlot.LEGS,  new ItemStack(Items.LEATHER_LEGGINGS));
-        player.equipStack(EquipmentSlot.FEET,  new ItemStack(Items.LEATHER_BOOTS));
-        player.equipStack(EquipmentSlot.MAINHAND, new ItemStack(Items.WOODEN_SWORD));
+        int color = Color.HSBtoRGB((float) Math.random(), 0.9f, 0.9f);
+        player.equipStack(EquipmentSlot.HEAD,  new ItemBuilder(Items.LEATHER_HELMET, 1).maxDura(30).withComponent(DataComponentTypes.DYED_COLOR, new DyedColorComponent(color)).build());
+        player.equipStack(EquipmentSlot.CHEST,  new ItemBuilder(Items.LEATHER_CHESTPLATE, 1).maxDura(30).withComponent(DataComponentTypes.DYED_COLOR, new DyedColorComponent(color)).build());
+        player.equipStack(EquipmentSlot.LEGS,  new ItemBuilder(Items.LEATHER_LEGGINGS, 1).maxDura(30).withComponent(DataComponentTypes.DYED_COLOR, new DyedColorComponent(color)).build());
+        player.equipStack(EquipmentSlot.FEET,  new ItemBuilder(Items.LEATHER_BOOTS, 1).maxDura(30).withComponent(DataComponentTypes.DYED_COLOR, new DyedColorComponent(color)).build());
+        player.equipStack(EquipmentSlot.MAINHAND, new ItemBuilder(Items.WOODEN_SWORD, 1).maxDura(30).build());
     }
 
     public static void toLobby(ServerPlayerEntity player) {
@@ -195,6 +201,8 @@ public class GameManager {
         player.sendMessage(Text.literal(""), true);
         player.heal(20);
         player.clearStatusEffects();
+        player.addStatusEffect(new StatusEffectInstance(
+                StatusEffects.SATURATION, -1, 0, false, false));
         player.setFireTicks(0);
         player.teleport(
                 GameConfig.LOBBY_POS.getX() + 0.5,

@@ -17,6 +17,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 
 import java.util.*;
+import java.util.concurrent.ThreadLocalRandom;
 
 import static chaos.game.GameConfig.*;
 import static chaos.game.GameManager.*;
@@ -33,6 +34,7 @@ public class DisasterSystem {
         disasters.put("Baby Apocalypse", DisasterSystem::babyApocalypse);
         disasters.put("Orbital Strike Canon", DisasterSystem::orbitalCanon);
         disasters.put("Explosive Surprise", DisasterSystem::explosiveSurprise);
+        disasters.put("Lightning Storm", DisasterSystem::lightningStorm);
         disasters.put("Position Shuffle", DisasterSystem::positionShuffle);
     }
 
@@ -40,7 +42,7 @@ public class DisasterSystem {
     public static void start(){
         stop();
         delayTask = TaskScheduler.schedule(x->{
-            disasterTask = TaskScheduler.schedule(DisasterSystem::DisasterSystemTick, 100, -1, true, null);
+            disasterTask = TaskScheduler.schedule(DisasterSystem::disasterSystemTick, 100, -1, true, null);
         }, 40*20, 1, false, null);
     }
     public static void stop(){
@@ -48,9 +50,10 @@ public class DisasterSystem {
         TaskScheduler.remove(disasterTask);
     }
 
-    public static void DisasterSystemTick(int currentRun){
+    public static void disasterSystemTick(int currentRun){
         if (Math.random() < 0.2){
             List<String> keys = new ArrayList<>(disasters.keySet());
+            Collections.shuffle(keys);
             String name = keys.get(new Random().nextInt(keys.size()));
             countdownDisaster(name, disasters.get(name));
         }
@@ -62,7 +65,7 @@ public class DisasterSystem {
                     sendSound(getPlayer(uuid), SoundEvents.BLOCK_TRIAL_SPAWNER_OMINOUS_ACTIVATE);
                 }else{
                     if (state != GameManager.GameState.RUNNING){break;}
-                    getPlayer(uuid).sendMessage(Text.literal(name + " in " + (4 - x)).formatted(Formatting.RED).formatted(Formatting.BOLD), false);
+                    getPlayer(uuid).sendMessage(Text.literal(name + " in " + (4 - x)).formatted(Formatting.RED, Formatting.BOLD), false);
                 }
             }
         }, 20, 5, true, disaster);
@@ -123,6 +126,21 @@ public class DisasterSystem {
             }
         }
     }
+    private static void lightningStorm(){
+        if (state != GameState.RUNNING){return;}
+         TaskScheduler.schedule((run)->{
+            for (int i = 0; i <= 50; i++) {
+                int x = ThreadLocalRandom.current().nextInt(ARENA_MIN.getX() - 1, ARENA_MAX.getX());
+                int z = ThreadLocalRandom.current().nextInt(ARENA_MIN.getZ() - 1, ARENA_MAX.getZ());
+                LightningEntity lightning = EntityType.LIGHTNING_BOLT.create(getWorld(), SpawnReason.TRIGGERED);
+                if (lightning != null) {
+                    lightning.refreshPositionAfterTeleport(x, ARENA_MIN.getY(), z);
+                    getWorld().spawnEntity(lightning);
+                }
+
+            }
+         }, 15, 5, true, null);
+    }
     private static void positionShuffle(){
         List<Vec3d> positions = new ArrayList<>();
         List<ServerPlayerEntity> players = new ArrayList<>();
@@ -130,11 +148,12 @@ public class DisasterSystem {
             players.add(getPlayer(uuid));
             positions.add(getPlayer(uuid).getEntityPos());
         }
-        Collections.shuffle(positions);
 
         for (int i = 0; i < players.size(); i++){
             Vec3d newPos = positions.get((i + 1) % positions.size());
-            players.get(i).teleport(newPos.x, newPos.y, newPos.z, false);
+            var player = players.get(i);
+            player.teleport(getWorld(), newPos.x, newPos.y, newPos.z, Set.of(), player.getYaw(), player.getPitch(), false);
+            sendSound(players.get(i), SoundEvents.ENTITY_PLAYER_TELEPORT);
         }
     }
 }

@@ -1,7 +1,12 @@
 package chaos.game;
 
 
+import net.minecraft.block.Block;
+import net.minecraft.block.BlockState;
+import net.minecraft.block.Blocks;
 import net.minecraft.util.math.BlockPos;
+
+import java.util.List;
 
 public class GameConfig {
 
@@ -19,5 +24,11 @@ public class GameConfig {
     public static final int DECAY_MAX = 40;
     public static final int DECAY_MIN = 10;
     public static final int MAX_TIME = 15 * 60 * 20;
+
+    public static final List<Block> BREAKABLE_BLOCKS = List.of(
+            Blocks.FIRE,
+            Blocks.COBBLESTONE,
+            Blocks.COBWEB
+    );
 
 }

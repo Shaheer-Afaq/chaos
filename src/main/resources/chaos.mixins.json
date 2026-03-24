@@ -7,7 +7,8 @@
     "CreeperAccessor",
     "ExplosionMixin",
     "ItemDespawnMixin",
-    "LessDamageMixin"
+    "LessDamageMixin",
+    "NoFireMixin"
   ],
   "injectors": {
     "defaultRequire": 1

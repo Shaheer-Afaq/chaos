@@ -1,15 +1,22 @@
 package chaos.mixin;
 
-import net.minecraft.world.explosion.ExplosionImpl;
+import net.minecraft.block.Block;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-@Mixin(ExplosionImpl.class)
+import static chaos.game.GameConfig.BREAKABLE_BLOCKS;
+
+@Mixin(Block.class)
 public abstract class ExplosionMixin {
-    @Inject(method = "shouldDestroyBlocks", at = @At("HEAD"), cancellable = true)
-    private void preventBlockDestruction(CallbackInfoReturnable<Boolean> cir) {
-        cir.setReturnValue(false);
+
+    @Inject(method = "getBlastResistance", at = @At("HEAD"), cancellable = true)
+    private void chaos$limitExplosionBreaking(CallbackInfoReturnable<Float> cir) {
+        Block block = (Block) (Object) this;
+
+        if (!BREAKABLE_BLOCKS.contains(block.getDefaultState().getBlock())) {
+            cir.setReturnValue(3600000.0f);
+        }
     }
 }
