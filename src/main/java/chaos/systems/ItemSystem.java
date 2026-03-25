@@ -40,7 +40,7 @@ public class ItemSystem {
     }
 
     public static void start(){
-        ItemSystemTick = TaskScheduler.schedule(ItemSystem::ItemSystemTick, 160, -1, true, null);
+        ItemSystemTick = TaskScheduler.schedule(ItemSystem::ItemSystemTick, 120, -1, true, null);
     }
     public static void stop(){ TaskScheduler.remove(ItemSystemTick);}
 

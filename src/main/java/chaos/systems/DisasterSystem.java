@@ -42,7 +42,7 @@ public class DisasterSystem {
     public static void start(){
         stop();
         delayTask = TaskScheduler.schedule(x->{
-            disasterTask = TaskScheduler.schedule(DisasterSystem::disasterSystemTick, 160, -1, true, null);
+            disasterTask = TaskScheduler.schedule(DisasterSystem::disasterSystemTick, 300, -1, true, null);
         }, 30*20, 1, false, null);
     }
     public static void stop(){
@@ -51,7 +51,7 @@ public class DisasterSystem {
     }
 
     public static void disasterSystemTick(int currentRun){
-        if (Math.random() < 0.4){
+        if (Math.random() < 0.5){
             List<String> keys = new ArrayList<>(disasters.keySet());
             Collections.shuffle(keys);
             String name = keys.get(new Random().nextInt(keys.size()));
