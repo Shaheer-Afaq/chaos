@@ -17,17 +17,10 @@
 	"entrypoints": {
 		"main": [
 			"chaos.Chaos"
-		],
-		"client": [
-			"chaos.ChaosClient"
 		]
 	},
 	"mixins": [
-		"chaos.mixins.json",
-		{
-			"config": "chaos.client.mixins.json",
-			"environment": "client"
-		}
+		"chaos.mixins.json"
 	],
 	"depends": {
 		"fabricloader": ">=0.18.4",

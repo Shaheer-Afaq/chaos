@@ -40,23 +40,23 @@ public class ItemSystem {
     }
 
     public static void start(){
-        ItemSystemTick = TaskScheduler.schedule(ItemSystem::ItemSystemTick, 100, -1, true, null);
+        ItemSystemTick = TaskScheduler.schedule(ItemSystem::ItemSystemTick, 160, -1, true, null);
     }
     public static void stop(){ TaskScheduler.remove(ItemSystemTick);}
 
     public static void ItemSystemTick(int currentRun){
         double roll = Math.random();
 
-        if (roll < 0.2) {
+        if (roll < 0.15) {
             giveItem(ItemType.Armor);
         }
-        else if (roll < 0.4) {
+        else if (roll < 0.30) {
             giveItem(ItemType.Weapon);
         }
-        else if (roll < 0.6) {
+        else if (roll < 0.65) {
             giveItem(ItemType.Consumable);
         }
-        else if (roll < 0.9){
+        else{
             giveItem(ItemType.Utility);
         }
     }
@@ -108,6 +108,7 @@ public class ItemSystem {
 
     public static void addWeapons(){
         List<ItemStack> weapons = items.get(ItemType.Weapon);
+        weapons.clear();
         weapons.add(new ItemBuilder(Items.IRON_SWORD, 1)
                 .name("Katana", Formatting.GRAY)
                 .withEnchant(Enchantments.SHARPNESS, 20)
@@ -195,6 +196,7 @@ public class ItemSystem {
     }
     public static void addConsumables(){
         List<ItemStack> consumables = items.get(ItemType.Consumable);
+        consumables.clear();
         consumables.add(new ItemBuilder(Items.WIND_CHARGE, 4)
                 .name("Breeze Balls", Formatting.AQUA)
                 .build()
@@ -244,7 +246,7 @@ public class ItemSystem {
     }
     public static void addUtilities(){
         List<ItemStack> utilities = items.get(ItemType.Utility);
-//
+        utilities.clear();
         utilities.add(new ItemBuilder(Items.SHIELD, 1).name("Shield", Formatting.YELLOW).maxDura(25).build());
         utilities.add(new ItemBuilder(Items.ARROW, 8).name("Arrow", Formatting.BLUE).build());
         utilities.add(new ItemBuilder(Items.COBWEB, 8).name("Spider Web", Formatting.WHITE).build());
@@ -306,7 +308,7 @@ public class ItemSystem {
     }
     public static void addArmor(){
         List<ItemStack> armors = items.get(ItemType.Armor);
-
+        armors.clear();
         armors.add(new ItemBuilder(Items.IRON_BOOTS, 1)
                 .name("Roller Skates",  Formatting.DARK_GRAY)
                 .desc("Doubles movement speed", Formatting.BLUE)

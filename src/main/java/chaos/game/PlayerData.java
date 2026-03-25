@@ -11,6 +11,4 @@ import java.util.List;
 public class PlayerData {
     public Text message = Text.empty();
     public List<String> messages = new ArrayList<>(Arrays.asList("", "", ""));
-    public Text weapon;
-
 }

@@ -73,11 +73,9 @@ public class GameManager {
             state = GameState.WAITING;
             Server = server;
             World = server.getOverworld();
-            TaskScheduler.schedule((x)-> Server.openToLan(GameMode.SURVIVAL, true, 25565), 20, 1, false, null);
             setRules();
-            populateLists();
             resetArena();
-            Server.execute(HelperMethods::clearAllEntities);
+            Server.execute(ItemSystem::populateLists);
         });
         ServerTickEvents.START_SERVER_TICK.register(GameManager::tick);
     }
@@ -110,6 +108,7 @@ public class GameManager {
     }
 
     public static void startGame() {
+        populateLists();
         currentTick = 0;
         state = GameState.RUNNING;
         updateTimebar();

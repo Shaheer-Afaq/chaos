@@ -34,7 +34,7 @@ public class HelperMethods {
                             SoundCategory.MASTER, player.getX(), player.getY(), player.getZ(), 1.0f, 1.0f, 0L));
     }
     public static void clearAllEntities() {
-        Box box = new Box(GROUND_MIN.toCenterPos(), ARENA_MAX.toCenterPos());
+        Box box = new Box(GROUND_MIN.toCenterPos(), ARENA_MAX.toCenterPos()).expand(5, 3, 5);
         List<Entity> entities = new ArrayList<>(getWorld().getOtherEntities(null, box));
         entities.stream().filter(e -> !(e instanceof PlayerEntity)).forEach(Entity::discard);
     }
@@ -56,14 +56,13 @@ public class HelperMethods {
         for (BlockPos pos : BlockPos.iterate(ARENA_MIN, ARENA_MAX)) {
             getWorld().setBlockState(pos, Blocks.AIR.getDefaultState(), 2);
         }
-    }
-    public static void setRules(){
+    }    public static void setRules(){
         getServer().setDifficulty(Difficulty.HARD, true);
         assert getWorld() != null;
         getWorld().getGameRules().setValue(GameRules.ADVANCE_TIME, false,getServer());
         getWorld().getGameRules().setValue(GameRules.DO_IMMEDIATE_RESPAWN, true, getServer());
         getWorld().getGameRules().setValue(GameRules.DO_MOB_SPAWNING, false, getServer());
-        getWorld().getGameRules().setValue(GameRules.KEEP_INVENTORY, true, getServer());
+        getWorld().getGameRules().setValue(GameRules.KEEP_INVENTORY, false, getServer());
         getWorld().getGameRules().setValue(GameRules.NATURAL_HEALTH_REGENERATION, false, getServer());
         getWorld().getGameRules().setValue(GameRules.ANNOUNCE_ADVANCEMENTS, false, getServer());
         getWorld().getGameRules().setValue(GameRules.DO_MOB_LOOT, false, getServer());
