@@ -2,6 +2,6 @@ Chaos is a fast-paced PvP survival minigame where everything is unpredictable. P
 
 It supports any amount of players. More players = more fun!
 
-[Mod](https://github.com/Shaheer-Afaq/chaos/releases/download/minecraft_minigame/chaos.jar)
+To play, download this [mod](https://github.com/Shaheer-Afaq/chaos/releases/download/minecraft_minigame/chaos.jar) and [world](https://github.com/Shaheer-Afaq/chaos/releases/download/minecraft_minigame/chaos.world.zip)
 
-[World](https://github.com/Shaheer-Afaq/chaos/releases/download/minecraft_minigame/chaos.world.zip)
+Upon joining players will be place in a lobby, press the start button to start the game. Last man standing wins!
